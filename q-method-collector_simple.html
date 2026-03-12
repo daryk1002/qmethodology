@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q Method Data Collector</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: #fff; color: #111; min-height: 100vh; font-size: 14px; letter-spacing: -0.01em; }
+.site-logo { position: fixed; bottom: 16px; right: 20px; z-index: 9999; }
+.site-logo img { height: 80px; width: auto; }
+.container { max-width: 900px; margin: 0 auto; padding: 40px 24px; }
+h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 12px; line-height: 1.1; text-transform: uppercase; }
+h2 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; color: #111; text-transform: uppercase; }
+h3 { font-size: 1rem; font-weight: 600; margin-bottom: 8px; }
+button { cursor: pointer; padding: 10px 20px; border: 1px solid #111; border-radius: 0; font-size: 0.85rem; font-weight: 500; font-family: 'Inter', sans-serif; letter-spacing: 0.02em; transition: all 0.15s; text-transform: uppercase; }
+button:hover { background: #111; color: #fff; }
+.btn-primary { background: #111; color: #fff; border: 1px solid #111; }
+.btn-primary:hover { background: #333; border-color: #333; }
+.btn-success { background: #111; color: #fff; border: 1px solid #111; }
+.btn-success:hover { background: #333; }
+.btn-danger { background: #fff; color: #111; border: 1px solid #111; }
+.btn-danger:hover { background: #111; color: #fff; }
+.btn-secondary { background: #fff; color: #111; border: 1px solid #ccc; }
+.btn-secondary:hover { background: #111; color: #fff; border-color: #111; }
+input, textarea, select { padding: 10px 12px; border: 1px solid #ddd; border-radius: 0; font-size: 0.9rem; width: 100%; font-family: 'Inter', sans-serif; background: #fff; transition: border-color 0.15s; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: #111; }
+label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #555; }
+.card { background: #fff; border: 1px solid #e0e0e0; padding: 32px; margin-bottom: 20px; }
+.step-indicator { display: flex; gap: 3px; margin-bottom: 32px; }
+.step-dot { flex: 1; height: 2px; background: #e0e0e0; }
+.step-dot.active { background: #111; }
+.step-dot.done { background: #999; }
+.hidden { display: none !important; }
+.warning { background: #fff; border: 1px solid #111; color: #111; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; }
+.error { background: #fff; border: 1px solid #111; color: #111; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; }
+.success { background: #fff; border: 1px solid #111; color: #111; padding: 12px 16px; margin: 12px 0; font-size: 0.85rem; }
+.tabs { display: flex; border-bottom: 1px solid #111; margin-bottom: 32px; gap: 0; }
+.tab { padding: 12px 24px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 600; color: #999; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.tab.active { color: #111; border-bottom-color: #111; }
+.inline-group { display: flex; gap: 16px; align-items: flex-end; }
+.inline-group > div { flex: 1; }
+.stmt-list { max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; }
+.stmt-item { display: flex; align-items: center; padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+.stmt-item:last-child { border-bottom: none; }
+.stmt-item .num { font-weight: 700; color: #999; width: 30px; flex-shrink: 0; font-size: 0.8rem; }
+.stmt-item .text { flex: 1; }
+.stmt-item button { padding: 2px 10px; font-size: 0.75rem; margin-left: 6px; }
+.pattern-grid { display: flex; gap: 3px; justify-content: center; align-items: flex-end; margin: 24px 0; }
+.pattern-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pattern-col .score-label { font-weight: 700; font-size: 0.8rem; margin-bottom: 6px; }
+.pattern-col .count-display { font-size: 0.8rem; color: #888; margin-top: 6px; }
+.pattern-cell { width: 36px; height: 28px; border: 1px solid #ccc; background: #f5f5f5; }
+.pattern-btns { display: flex; gap: 2px; margin-top: 6px; }
+.pattern-btns button { padding: 2px 10px; font-size: 0.8rem; }
+.url-box { background: #fafafa; border: 1px solid #e0e0e0; padding: 12px; word-break: break-all; font-family: 'SF Mono', 'Consolas', monospace; font-size: 0.8rem; margin: 12px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+th { font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #888; }
+
+/* Landing */
+.landing { text-align: center; padding: 120px 24px 80px; }
+.landing h1 { font-size: 3rem; margin-bottom: 12px; }
+.landing p { color: #888; margin-bottom: 48px; font-size: 0.95rem; letter-spacing: 0.02em; text-transform: uppercase; }
+.landing-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.landing-btn { padding: 16px 48px; font-size: 0.9rem; min-width: 220px; letter-spacing: 0.05em; }
+
+/* Q-Sort Grid */
+.qsort-container { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+.pile-area { background: #fff; border: 1px solid #e0e0e0; padding: 16px; margin-bottom: 12px; min-height: 100px; max-height: 30vh; overflow-y: auto; }
+.pile-area h3 { margin-bottom: 10px; font-size: 0.85rem; color: #888; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.pile-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.q-card { background: #fff; border: 1px solid #ddd; padding: 6px 8px; font-size: 0.8rem; cursor: grab; user-select: none; max-width: 200px; min-width: 80px; transition: all 0.15s; position: relative; }
+.q-card:hover { border-color: #111; }
+.q-card.selected { border: 2px solid #111; background: #f5f5f5; }
+.q-card .card-num { font-weight: 700; color: #aaa; font-size: 0.7rem; }
+.q-card.dragging { opacity: 0.5; }
+.grid-area { flex: 1; overflow-x: auto; overflow-y: auto; padding-bottom: 10px; }
+.sort-grid { display: flex; gap: 3px; justify-content: center; min-height: 200px; align-items: flex-start; padding: 8px; }
+.grid-column { display: flex; flex-direction: column; align-items: center; min-width: 90px; padding: 8px 4px; transition: background 0.2s; border: 1px solid #e0e0e0; }
+.grid-column.drag-over { border: 2px dashed #111; }
+.grid-column.full { opacity: 0.5; }
+.col-header { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+.col-count { font-size: 0.7rem; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+.col-slots { display: flex; flex-direction: column; gap: 3px; width: 100%; align-items: center; }
+.col-slot { width: 100%; min-height: 36px; border: 1px dashed #ddd; display: flex; align-items: center; justify-content: center; }
+.col-slot .q-card { margin: 0; max-width: none; width: 100%; }
+.progress-bar-container { background: #f0f0f0; height: 4px; margin: 10px 0; overflow: hidden; position: relative; }
+.progress-bar-fill { height: 100%; background: #111; transition: width 0.3s; }
+.progress-text { text-align: right; font-size: 0.75rem; font-weight: 600; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+.touch-clone { position: fixed; z-index: 10000; pointer-events: none; opacity: 0.85; transform: scale(1.05); }
+.respondent-header { background: #fff; padding: 16px 20px; border-bottom: 1px solid #e0e0e0; margin-bottom: 12px; }
+.thank-you { text-align: center; padding: 80px 20px; }
+.thank-you h2 { font-size: 2rem; color: #111; margin-bottom: 16px; }
+
+/* Pre-Sort */
+.presort-container { max-width: 600px; margin: 0 auto; }
+.presort-counter { font-size: 0.8rem; color: #888; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; }
+.presort-statement { background: #fff; border: 1px solid #ddd; padding: 28px 24px; margin-bottom: 20px; font-size: 1rem; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+.presort-buttons { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+.presort-buttons button { flex: 1; padding: 14px 16px; border: 1px solid #111; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.03em; font-family: 'Inter', sans-serif; }
+.presort-buttons button:active { transform: scale(0.98); }
+.presort-buttons .btn-disagree { background: #fff; color: #111; }
+.presort-buttons .btn-disagree:hover { background: #111; color: #fff; }
+.presort-buttons .btn-neutral { background: #fff; color: #111; }
+.presort-buttons .btn-neutral:hover { background: #888; color: #fff; border-color: #888; }
+.presort-buttons .btn-agree { background: #111; color: #fff; }
+.presort-buttons .btn-agree:hover { background: #333; }
+.presort-piles { display: flex; gap: 12px; margin-top: 20px; }
+.presort-pile { flex: 1; padding: 12px; min-height: 80px; border: 1px solid #e0e0e0; }
+.presort-pile h4 { font-size: 0.8rem; margin-bottom: 8px; text-align: center; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: #888; }
+.presort-pile.pile-disagree { border-top: 2px solid #111; }
+.presort-pile.pile-neutral { border-top: 2px solid #aaa; }
+.presort-pile.pile-agree { border-top: 2px solid #555; }
+.presort-pile .pile-card { font-size: 0.75rem; padding: 4px 8px; margin-bottom: 3px; border-bottom: 1px solid #f0f0f0; }
+.presort-done { text-align: center; padding: 24px; }
+.presort-done h3 { color: #111; margin-bottom: 12px; }
+.q-card.presort-disagree { border-left: 3px solid #111; }
+.q-card.presort-neutral { border-left: 3px solid #aaa; }
+.q-card.presort-agree { border-left: 3px solid #555; }
+.link-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; }
+.link-row .link-id { font-weight: 700; color: #111; min-width: 50px; }
+.link-row .link-url { flex: 1; font-family: 'SF Mono', 'Consolas', monospace; word-break: break-all; color: #888; }
+.link-row button { flex-shrink: 0; padding: 4px 12px; font-size: 0.75rem; }
+
+@media (max-width: 768px) {
+  .container { padding: 16px 12px; }
+  #respond-id-screen .card { padding: 24px 16px; }
+  #respond-id-screen { margin-top: 16px !important; }
+  h2 { font-size: 1.2rem; }
+  .presort-piles { flex-direction: column; gap: 8px; }
+  .presort-pile { min-height: 40px; }
+  .presort-buttons { gap: 8px; }
+  .presort-buttons button { padding: 12px 8px; font-size: 0.8rem; }
+  .presort-statement { padding: 20px 16px; font-size: 0.95rem; }
+  .qsort-container { height: calc(100vh - 140px); }
+  .pile-area { padding: 10px; max-height: 25vh; }
+  .respondent-header { padding: 10px 12px; }
+  .grid-column { min-width: 60px; }
+  .q-card { font-size: 0.7rem; padding: 3px 5px; max-width: 120px; }
+  #respond-sort-screen { padding: 4px; }
+  .sort-grid { gap: 2px; padding: 4px; }
+  .landing-btn { min-width: 160px; padding: 14px 24px; }
+  .landing h1 { font-size: 2rem; }
+  button { padding: 10px 16px; font-size: 0.8rem; }
+  .card { padding: 20px 16px; }
+  .respondent-header h3 { font-size: 0.9rem; }
+  #sort-central-question, #presort-central-question { font-size: 0.85rem; padding: 6px 10px; }
+}
+@media (max-width: 400px) {
+  .grid-column { min-width: 48px; }
+  .q-card { font-size: 0.65rem; padding: 2px 4px; max-width: 90px; }
+  .presort-buttons button { padding: 10px 4px; font-size: 0.75rem; }
+  h2 { font-size: 1rem; }
+  .pile-area { max-height: 20vh; }
+  .respondent-header { padding: 8px 10px; margin-bottom: 6px; }
+}
+</style>
+</head>
+<body>
+
+<div class="site-logo"><img src="download.png" alt="Team Sailers"></div>
+
+<!-- LANDING PAGE -->
+<div id="page-landing" class="container landing hidden">
+  <h1>Q Method Data Collector</h1>
+  <p>KenQ-compatible Q methodology data collection tool</p>
+  <div class="landing-buttons">
+    <button class="landing-btn btn-primary" onclick="goTo('admin')">Admin Setup</button>
+    <button class="landing-btn btn-success" onclick="goTo('respond')">Respondent Sort</button>
+  </div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="page-login" class="container hidden" style="max-width:420px;margin-top:60px">
+  <div class="card" style="text-align:center">
+    <h2>Admin Login</h2>
+    <div style="margin-bottom:12px">
+      <label for="login-username">Username</label>
+      <input id="login-username" placeholder="Username" autocomplete="username">
+    </div>
+    <div style="margin-bottom:16px">
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" placeholder="Password" autocomplete="current-password">
+    </div>
+    <div id="login-error" class="error hidden"></div>
+    <button class="btn-primary" style="width:100%;margin-bottom:10px" onclick="doLogin()">Login</button>
+    <button class="btn-secondary" style="width:100%" onclick="doRegister()">Create Account</button>
+    <div id="login-msg" class="success hidden" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- STUDY LIST PAGE -->
+<div id="page-studies" class="container hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+    <h1 style="margin:0">My Studies</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span id="logged-in-user" style="font-size:0.85rem;color:#888"></span>
+      <button class="btn-secondary" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <button class="btn-primary" style="margin-bottom:20px" onclick="createNewStudy()">+ New Study</button>
+  <div id="study-list"></div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="container hidden">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <h1 style="margin:0">Q Method — Admin</h1>
+    <button class="btn-secondary" onclick="backToStudies()">← Back to Studies</button>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchAdminTab('setup')">Study Setup</div>
+    <div class="tab" onclick="switchAdminTab('data')">Data Management</div>
+  </div>
+
+  <!-- DASHBOARD (shown when study has config) -->
+  <div id="admin-dashboard" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+        <h2 style="margin:0" id="dash-title">Study Summary</h2>
+        <button class="btn-primary" onclick="enterEditMode()">Edit Study</button>
+      </div>
+      <div id="dash-summary" style="font-size:0.9rem;line-height:1.8"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>Respondent Links</h2>
+      <div class="inline-group" style="margin-bottom:12px;max-width:400px">
+        <div>
+          <label for="dash-count">Number of Participants</label>
+          <input id="dash-count" type="number" min="1" value="10">
+        </div>
+        <div style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn-primary" onclick="updateLinksCount()">Update</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn-primary" onclick="copyAllLinks()">Copy All Links</button>
+        <span id="dash-copy-feedback" style="color:#5cb85c;font-size:0.9rem;line-height:38px"></span>
+      </div>
+      <div id="dash-links" style="max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div id="admin-setup" class="hidden">
+    <div style="margin-bottom:12px">
+      <button class="btn-secondary" onclick="exitEditMode()">← Back to Dashboard</button>
+    </div>
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <!-- Step 1: Project -->
+    <div id="step-1" class="card">
+      <h2>Step 1: Project Setup</h2>
+      <p style="font-size:0.8rem;color:#999;margin-bottom:12px">프로젝트 이름과 참가자 ID 접두사를 설정합니다. 접두사는 참가자 링크 생성에 사용됩니다.</p>
+      <div style="margin-bottom:12px">
+        <label for="project-name">Project Name</label>
+        <input id="project-name" placeholder="My Q Study">
+      </div>
+      <div class="inline-group" style="margin-bottom:12px">
+        <div>
+          <label for="id-prefix">Participant ID Prefix</label>
+          <input id="id-prefix" placeholder="P" value="P">
+        </div>
+        <div>
+          <label for="participant-count">Number of Participants</label>
+          <input id="participant-count" type="number" min="1" value="10">
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label for="study-description">Study Description <span style="font-size:0.75rem;color:#999">(optional)</span></label>
+        <p style="font-size:0.75rem;color:#999;margin:2px 0 6px">응답자에게 보여줄 연구 설명을 입력하세요. 첫 화면에 표시됩니다.</p>
+        <textarea id="study-description" rows="3" placeholder="e.g., This study explores participants' views on community development..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:0.9rem;resize:vertical"></textarea>
+      </div>
+      <div style="margin-bottom:12px">
+        <label for="central-question">Q-Sort Central Question <span style="font-size:0.75rem;color:#999">(optional)</span></label>
+        <p style="font-size:0.75rem;color:#999;margin:2px 0 6px">Q 분류 중 화면 상단에 계속 표시될 중심 질문을 입력하세요.</p>
+        <input id="central-question" placeholder="e.g., What do you think constitutes good community development?">
+      </div>
+      <div style="margin-bottom:12px">
+        <label for="confidentiality-notice">Confidentiality / Instructions Notice <span style="font-size:0.75rem;color:#999">(optional)</span></label>
+        <p style="font-size:0.75rem;color:#999;margin:2px 0 6px">유의사항이나 기밀 관련 안내문을 입력하세요. 첫 화면에 표시됩니다.</p>
+        <textarea id="confidentiality-notice" rows="3" placeholder="e.g., Your responses are confidential and will only be used for research purposes..." style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:0.9rem;resize:vertical"></textarea>
+      </div>
+      <div style="text-align:right;margin-top:16px">
+        <button class="btn-primary" onclick="adminNext(2)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Pattern -->
+    <div id="step-2" class="card hidden">
+      <h2>Step 2: Distribution Pattern</h2>
+      <p style="font-size:0.8rem;color:#999;margin-bottom:12px">Q 분류에서 사용할 점수 범위와 각 점수별 카드 수를 설정합니다. +/- 버튼으로 조절하세요.</p>
+      <div class="inline-group" style="margin-bottom:12px">
+        <div>
+          <label for="min-score">Min Score</label>
+          <input id="min-score" type="number" value="-4">
+        </div>
+        <div>
+          <label for="max-score">Max Score</label>
+          <input id="max-score" type="number" value="4">
+        </div>
+        <div style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn-primary" onclick="buildPattern()">Build</button>
+        </div>
+      </div>
+      <div id="pattern-designer"></div>
+      <div id="pattern-total" style="margin-top:8px;font-weight:600"></div>
+      <div id="pattern-warning" class="warning hidden"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(1)">Back</button>
+        <button class="btn-primary" onclick="adminNext(3)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Statements -->
+    <div id="step-3" class="card hidden">
+      <h2>Step 3: Statements</h2>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:8px">Enter one statement per line, or add individually below.<br><span style="color:#bbb">한 줄에 하나씩 진술문을 입력하거나, 아래에서 개별 추가할 수 있습니다.</span></p>
+      <textarea id="stmt-bulk" rows="6" placeholder="Statement 1&#10;Statement 2&#10;Statement 3"></textarea>
+      <button class="btn-primary" style="margin-top:8px" onclick="loadBulkStatements()">Load Statements</button>
+      <div style="margin-top:12px">
+        <div class="inline-group">
+          <div><input id="stmt-single" placeholder="Add a statement"></div>
+          <div style="flex:0"><button class="btn-success" onclick="addSingleStatement()">Add</button></div>
+        </div>
+      </div>
+      <div id="stmt-count" style="margin:10px 0;font-weight:600"></div>
+      <div id="stmt-mismatch" class="warning hidden"></div>
+      <div class="stmt-list" id="stmt-list"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(2)">Back</button>
+        <button class="btn-primary" onclick="adminNext(4)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Demographic Questions -->
+    <div id="step-4" class="card hidden">
+      <h2>Step 4: Respondent Info Questions</h2>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:12px">Add demographic or personal info questions that respondents will answer before sorting. (e.g. Name, Age, Gender)<br><span style="color:#bbb">응답자가 분류 전에 답할 인구통계 질문을 추가합니다. (선택사항)</span></p>
+
+      <div style="background:#f9f9f9;padding:16px;border-radius:6px;margin-bottom:12px">
+        <div class="inline-group" style="margin-bottom:8px">
+          <div style="flex:3">
+            <label for="dq-text">Question Text</label>
+            <input id="dq-text" placeholder="e.g. What is your age?">
+          </div>
+          <div style="flex:1">
+            <label for="dq-type">Type</label>
+            <select id="dq-type" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px" onchange="toggleDqOptions()">
+              <option value="text">Text</option>
+              <option value="number">Number</option>
+              <option value="select">Dropdown</option>
+              <option value="radio">Radio Buttons</option>
+            </select>
+          </div>
+        </div>
+        <div id="dq-options-area" class="hidden" style="margin-bottom:8px">
+          <label for="dq-options">Options (one per line)</label>
+          <textarea id="dq-options" rows="3" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <label style="display:flex;align-items:center;gap:4px;margin:0;font-weight:normal;font-size:0.9rem">
+            <input type="checkbox" id="dq-required" checked> Required
+          </label>
+          <button class="btn-success" onclick="addDemoQuestion()">Add Question</button>
+        </div>
+      </div>
+
+      <div id="dq-count" style="font-weight:600;margin-bottom:8px"></div>
+      <div class="stmt-list" id="dq-list"></div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(3)">Back</button>
+        <button class="btn-primary" onclick="adminNext(5)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Save -->
+    <div id="step-5" class="card hidden">
+      <h2>Step 5: Review & Save</h2>
+      <p>Review your configuration and save.<br><span style="color:#bbb">설정을 확인하고 저장합니다.</span></p>
+      <div id="config-summary" style="margin:12px 0;font-size:0.9rem"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(4)">Back</button>
+        <button class="btn-success" onclick="saveAndGenerate()">Save Study</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA TAB -->
+  <div id="admin-data" class="hidden">
+    <div class="card">
+      <h2>Collected Responses</h2>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-success" onclick="exportXLSX()">Export Q-Sort (KenQ)</button>
+        <button class="btn-primary" onclick="exportDemographics()">Export Respondent Info</button>
+        <button class="btn-danger" onclick="clearAllResponses()">Clear All</button>
+      </div>
+      <div id="responses-table-wrap">
+        <p style="color:#999">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESPONDENT PAGE -->
+<div id="page-respond" class="hidden">
+  <!-- ID Input -->
+  <div id="respond-id-screen" class="container" style="max-width:500px;margin-top:20px">
+    <div class="card" style="text-align:center">
+      <h2 id="respond-project-title">Q Sort</h2>
+      <div style="margin-bottom:12px">
+        <label id="lang-label" style="font-size:0.75rem;color:#888;text-transform:uppercase;letter-spacing:0.05em">Language</label>
+        <select id="lang-select" onchange="switchLanguage(this.value)" style="width:auto;min-width:160px;padding:8px 12px;font-size:0.9rem;margin-top:4px">
+          <option value="en">English</option>
+          <option value="km">ភាសាខ្មែរ (Khmer)</option>
+          <option value="tl">Filipino</option>
+          <option value="id">Bahasa Indonesia</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="vi">Tiếng Việt</option>
+        </select>
+      </div>
+      <div id="respond-study-description" class="hidden" style="text-align:left;background:#f8f9fa;border-radius:6px;padding:12px;margin-bottom:12px;color:#444;font-size:0.9rem;line-height:1.5;white-space:pre-wrap"></div>
+      <div id="respond-confidentiality" class="hidden" style="text-align:left;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:12px;margin-bottom:12px;color:#666;font-size:0.8rem;line-height:1.4;white-space:pre-wrap"></div>
+      <p style="color:#666;margin-bottom:16px">Please enter your participant ID to begin.</p>
+      <input id="participant-id" style="text-align:center;font-size:1.1rem" placeholder="Participant ID">
+      <button class="btn-primary" style="margin-top:16px;width:100%" onclick="startSort()">Begin Sorting</button>
+      <div id="respond-id-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- Demographic Survey -->
+  <div id="respond-demo-screen" class="hidden">
+    <div class="container" style="max-width:600px;margin-top:16px">
+      <div class="card">
+        <h2>Respondent Information</h2>
+        <p style="color:#666;margin-bottom:16px">Please fill in the following information before starting the sort.</p>
+        <div id="demo-form"></div>
+        <div id="demo-error" class="error hidden" style="margin-top:8px"></div>
+        <button class="btn-primary" style="margin-top:16px;width:100%" onclick="submitDemoForm()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Sort -->
+  <div id="respond-presort-screen" class="hidden">
+    <div class="container" style="max-width:700px">
+      <div class="card">
+        <h2>Pre-Sort: Initial Categorization</h2>
+        <div id="presort-central-question" class="hidden" style="background:#e3f2fd;border-radius:6px;padding:8px 12px;margin-bottom:12px;color:#1565c0;font-size:0.9rem;font-weight:500;text-align:center"></div>
+        <p style="color:#666;margin-bottom:16px">Read each statement and categorize it as Agree, Neutral, or Disagree.</p>
+        <div class="presort-container">
+          <div id="presort-card-area">
+            <div class="presort-counter" id="presort-counter">Statement 1 of 0</div>
+            <div class="presort-statement" id="presort-statement"></div>
+            <div class="presort-buttons">
+              <button class="btn-disagree" onclick="presortChoice('disagree')">Disagree</button>
+              <button class="btn-neutral" onclick="presortChoice('neutral')">Neutral</button>
+              <button class="btn-agree" onclick="presortChoice('agree')">Agree</button>
+            </div>
+          </div>
+          <div id="presort-done" class="presort-done hidden">
+            <h3>Pre-sorting complete!</h3>
+            <p style="color:#666;margin-bottom:16px">Review your piles below, then proceed to the final sort. Cards will be color-coded by your categories.</p>
+            <button class="btn-success" onclick="goToFinalSort()">Proceed to Final Sort</button>
+            <button class="btn-secondary" style="margin-left:8px" onclick="redoPresort()">Redo Pre-sort</button>
+          </div>
+          <div class="presort-piles">
+            <div class="presort-pile pile-disagree">
+              <h4>Disagree (<span id="pile-d-count">0</span>)</h4>
+              <div id="pile-disagree"></div>
+            </div>
+            <div class="presort-pile pile-neutral">
+              <h4>Neutral (<span id="pile-n-count">0</span>)</h4>
+              <div id="pile-neutral"></div>
+            </div>
+            <div class="presort-pile pile-agree">
+              <h4>Agree (<span id="pile-a-count">0</span>)</h4>
+              <div id="pile-agree"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sort Interface -->
+  <div id="respond-sort-screen" class="hidden" style="padding:8px">
+    <div class="respondent-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3 id="sort-project-title">Q Sort</h3>
+        <span id="sort-participant-label" style="font-size:0.9rem;color:#666"></span>
+      </div>
+      <div id="sort-central-question" class="hidden" style="background:#e3f2fd;border-radius:6px;padding:8px 12px;margin:6px 0;color:#1565c0;font-size:0.9rem;font-weight:500;text-align:center"></div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-text" id="progress-text">0 / 0 cards placed</div>
+    </div>
+    <div class="qsort-container">
+      <div class="pile-area">
+        <h3>Unsorted Cards <span id="pile-count"></span></h3>
+        <div class="pile-cards" id="pile-cards"></div>
+      </div>
+      <div class="grid-area">
+        <div class="sort-grid" id="sort-grid"></div>
+      </div>
+      <div style="text-align:center;padding:8px">
+        <button class="btn-success" id="submit-sort-btn" onclick="submitSort()" disabled>Submit Sort</button>
+        <div id="sort-error" class="error hidden" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thank You -->
+  <div id="respond-thanks" class="container hidden">
+    <div class="card thank-you">
+      <h2>Thank You!</h2>
+      <p>Your Q sort has been recorded successfully.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============== STATE ==============
+const BASE = '/qsailors';
+let currentUser = null;
+let currentStudyId = null;
+let adminStep = 1;
+let statements = [];
+let demoQuestions = []; // { text, type, required, options? }
+let pattern = {};
+let patternMin = -4;
+let patternMax = 4;
+let config = null;
+let selectedCard = null;
+let touchState = null;
+let presortData = { disagree: [], neutral: [], agree: [] };
+let presortIdx = 0;
+let presortOrder = [];
+
+// ============== API HELPERS ==============
+async function api(method, apiPath, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(BASE + apiPath, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+// ============== AUTH ==============
+function loadSession() {
+  const saved = localStorage.getItem('qmethod_user');
+  if (saved) currentUser = saved;
+}
+
+function saveSession(username) {
+  currentUser = username;
+  localStorage.setItem('qmethod_user', username);
+}
+
+function clearSession() {
+  currentUser = null;
+  localStorage.removeItem('qmethod_user');
+}
+
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+  if (!username || !password) { errEl.textContent = 'Please enter username and password.'; errEl.classList.remove('hidden'); return; }
+  try {
+    await api('POST', '/api/login', { username, password });
+    saveSession(username);
+    showStudies();
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function doRegister() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const msgEl = document.getElementById('login-msg');
+  errEl.classList.add('hidden');
+  msgEl.classList.add('hidden');
+  if (!username || !password) { errEl.textContent = 'Please enter username and password.'; errEl.classList.remove('hidden'); return; }
+  try {
+    await api('POST', '/api/register', { username, password });
+    msgEl.textContent = 'Account created! You can now login.';
+    msgEl.classList.remove('hidden');
+  } catch(e) {
+    errEl.textContent = e.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+function doLogout() {
+  clearSession();
+  showPage('page-login');
+}
+
+// ============== STUDY LIST ==============
+async function showStudies() {
+  showPage('page-studies');
+  document.getElementById('logged-in-user').textContent = currentUser;
+  const list = document.getElementById('study-list');
+  list.innerHTML = '<p style="color:#999">Loading...</p>';
+  try {
+    const studies = await api('GET', '/api/studies?username=' + encodeURIComponent(currentUser));
+    if (!studies.length) {
+      list.innerHTML = '<p style="color:#999">No studies yet. Click \"+ New Study\" to create one.</p>';
+      return;
+    }
+    list.innerHTML = studies.map(s =>
+      `<div class="card" style="display:flex;justify-content:space-between;align-items:center;padding:20px">
+        <div>
+          <div style="font-weight:700;font-size:1.1rem;margin-bottom:4px">${escHtml(s.projectName)}</div>
+          <div style="font-size:0.8rem;color:#888">${s.statementsCount} statements · ${s.responsesCount} responses</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-primary" onclick="openStudy('${s.id}')">Open</button>
+          <button class="btn-danger" onclick="deleteStudy('${s.id}','${escHtml(s.projectName)}')">Delete</button>
+        </div>
+      </div>`
+    ).join('');
+  } catch(e) {
+    list.innerHTML = '<p class="error">Failed to load studies: ' + escHtml(e.message) + '</p>';
+  }
+}
+
+async function createNewStudy() {
+  try {
+    const result = await api('POST', '/api/studies', { username: currentUser });
+    openStudy(result.id);
+  } catch(e) {
+    alert('Failed to create study: ' + e.message);
+  }
+}
+
+async function deleteStudy(id, name) {
+  if (!confirm('Delete study "' + name + '"? This cannot be undone.')) return;
+  try {
+    await api('DELETE', '/api/studies/' + id + '?username=' + encodeURIComponent(currentUser));
+    showStudies();
+  } catch(e) {
+    alert('Failed to delete: ' + e.message);
+  }
+}
+
+async function openStudy(id) {
+  currentStudyId = id;
+  showPage('page-admin');
+  await loadAdminState();
+}
+
+function backToStudies() {
+  currentStudyId = null;
+  showStudies();
+}
+
+// ============== ROUTING ==============
+function parsePath() {
+  const p = window.location.pathname.replace(BASE, '').replace(/^\/+|\/+$/g, '');
+  const parts = p.split('/').filter(Boolean);
+  // /admin → ['admin']
+  // /sort/abc123 → ['sort', 'abc123']
+  // /sort/abc123/P1 → ['sort', 'abc123', 'P1']
+  return parts;
+}
+
+function goTo(page) {
+  if (page === 'admin') window.location.href = BASE + '/admin';
+  else if (page === 'respond') window.location.href = BASE;
+  else window.location.href = BASE;
+}
+
+async function initApp() {
+  loadSession();
+  const parts = parsePath();
+
+  if (parts[0] === 'admin') {
+    if (currentUser) {
+      showStudies();
+    } else {
+      showPage('page-login');
+    }
+  } else if (parts[0] === 'sort' && parts[1]) {
+    currentStudyId = parts[1];
+    const urlPid = parts[2] ? decodeURIComponent(parts[2]) : null;
+    showPage('page-respond');
+    await loadRespondentConfig(urlPid);
+  } else {
+    showPage('page-landing');
+  }
+}
+
+function showPage(id) {
+  document.querySelectorAll('#page-landing,#page-login,#page-studies,#page-admin,#page-respond').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// Handle enter key on login form
+document.addEventListener('DOMContentLoaded', () => {
+  ['login-username', 'login-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  });
+});
+
+// ============== ADMIN ==============
+let studyHasConfig = false;
+
+async function loadAdminState() {
+  let cfg = null;
+  try {
+    cfg = await api('GET', '/api/studies/' + currentStudyId + '/config');
+  } catch(e) {}
+
+  if (cfg) {
+    // Load config into form fields
+    document.getElementById('project-name').value = cfg.projectName || '';
+    document.getElementById('id-prefix').value = cfg.prefix || 'P';
+    if (cfg.participantCount) document.getElementById('participant-count').value = cfg.participantCount;
+    document.getElementById('study-description').value = cfg.studyDescription || '';
+    document.getElementById('central-question').value = cfg.centralQuestion || '';
+    document.getElementById('confidentiality-notice').value = cfg.confidentialityNotice || '';
+    if (cfg.pattern) {
+      pattern = cfg.pattern;
+      const scores = Object.keys(pattern).map(Number).sort((a,b)=>a-b);
+      if (scores.length) {
+        patternMin = scores[0];
+        patternMax = scores[scores.length - 1];
+        document.getElementById('min-score').value = patternMin;
+        document.getElementById('max-score').value = patternMax;
+      }
+    }
+    if (cfg.statements) statements = cfg.statements.slice();
+    if (cfg.demoQuestions) demoQuestions = cfg.demoQuestions.slice();
+    studyHasConfig = true;
+    showDashboard(cfg);
+  } else {
+    studyHasConfig = false;
+    showSetupMode();
+  }
+  buildPattern();
+  renderStatements();
+}
+
+function showDashboard(cfg) {
+  document.getElementById('admin-dashboard').classList.remove('hidden');
+  document.getElementById('admin-setup').classList.add('hidden');
+
+  // Summary
+  const scores = cfg.pattern ? Object.keys(cfg.pattern).map(Number).sort((a,b)=>a-b) : [];
+  const total = cfg.pattern ? Object.values(cfg.pattern).reduce((a,b)=>a+b,0) : 0;
+  document.getElementById('dash-title').textContent = cfg.projectName || '(untitled)';
+  document.getElementById('dash-summary').innerHTML =
+    `<p><strong>Project:</strong> ${escHtml(cfg.projectName || '')}</p>
+     <p><strong>Prefix:</strong> ${escHtml(cfg.prefix || 'P')}</p>
+     <p><strong>Score range:</strong> ${scores.length ? scores[0] + ' ~ ' + scores[scores.length-1] : 'N/A'}</p>
+     <p><strong>Pattern total:</strong> ${total}</p>
+     <p><strong>Statements:</strong> ${(cfg.statements||[]).length}</p>
+     <p><strong>Info questions:</strong> ${(cfg.demoQuestions||[]).length}</p>
+     ${cfg.centralQuestion ? `<p><strong>Central question:</strong> ${escHtml(cfg.centralQuestion)}</p>` : ''}
+     ${cfg.studyDescription ? `<p><strong>Study description:</strong> ✓</p>` : ''}
+     ${cfg.confidentialityNotice ? `<p><strong>Confidentiality notice:</strong> ✓</p>` : ''}`;
+
+  // Links
+  const count = cfg.participantCount || 10;
+  document.getElementById('dash-count').value = count;
+  renderDashLinks(cfg.prefix || 'P', count);
+}
+
+function renderDashLinks(prefix, count) {
+  const base = window.location.origin + BASE;
+  const container = document.getElementById('dash-links');
+  let html = '';
+  for (let i = 1; i <= count; i++) {
+    const pid = prefix + i;
+    const url = base + '/sort/' + currentStudyId + '/' + encodeURIComponent(pid);
+    html += `<div class="link-row">
+      <span class="link-id">${escHtml(pid)}</span>
+      <span class="link-url">${escHtml(url)}</span>
+      <button class="btn-primary" onclick="copySingleLink(this, '${escHtml(url)}')">Copy</button>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+async function updateLinksCount() {
+  const count = parseInt(document.getElementById('dash-count').value) || 1;
+  const prefix = document.getElementById('id-prefix').value || 'P';
+  renderDashLinks(prefix, count);
+
+  // Also save the updated count to server
+  try {
+    const cfg = await api('GET', '/api/studies/' + currentStudyId + '/config');
+    if (cfg) {
+      cfg.participantCount = count;
+      await api('POST', '/api/studies/' + currentStudyId + '/config', cfg);
+    }
+  } catch(e) {}
+}
+
+function enterEditMode() {
+  document.getElementById('admin-dashboard').classList.add('hidden');
+  document.getElementById('admin-setup').classList.remove('hidden');
+  adminNext(1);
+}
+
+function exitEditMode() {
+  if (studyHasConfig) {
+    // Reload dashboard
+    loadAdminState();
+  }
+}
+
+function showSetupMode() {
+  document.getElementById('admin-dashboard').classList.add('hidden');
+  document.getElementById('admin-setup').classList.remove('hidden');
+  adminNext(1);
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  if (tab === 'setup') {
+    document.querySelector('.tabs .tab:first-child').classList.add('active');
+    document.getElementById('admin-dashboard').classList.add('hidden');
+    document.getElementById('admin-setup').classList.add('hidden');
+    document.getElementById('admin-data').classList.add('hidden');
+    if (studyHasConfig) {
+      document.getElementById('admin-dashboard').classList.remove('hidden');
+    } else {
+      document.getElementById('admin-setup').classList.remove('hidden');
+    }
+  } else {
+    document.querySelector('.tabs .tab:last-child').classList.add('active');
+    document.getElementById('admin-dashboard').classList.add('hidden');
+    document.getElementById('admin-setup').classList.add('hidden');
+    document.getElementById('admin-data').classList.remove('hidden');
+    renderResponses();
+  }
+}
+
+function adminNext(step) {
+  adminStep = step;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('step-' + i).classList.toggle('hidden', i !== step);
+  }
+  const dots = document.querySelectorAll('.step-dot');
+  dots.forEach((d, idx) => {
+    d.classList.remove('active', 'done');
+    if (idx + 1 === step) d.classList.add('active');
+    else if (idx + 1 < step) d.classList.add('done');
+  });
+  if (step === 3) renderStatements();
+  if (step === 4) renderDemoQuestions();
+  if (step === 5) renderSummary();
+}
+
+// Pattern Designer
+function buildPattern() {
+  patternMin = parseInt(document.getElementById('min-score').value) || -4;
+  patternMax = parseInt(document.getElementById('max-score').value) || 4;
+  if (patternMin >= patternMax) { patternMax = patternMin + 1; document.getElementById('max-score').value = patternMax; }
+
+  const container = document.getElementById('pattern-designer');
+  const oldPattern = { ...pattern };
+  pattern = {};
+
+  let html = '<div class="pattern-grid">';
+  for (let s = patternMin; s <= patternMax; s++) {
+    const count = oldPattern[s] !== undefined ? oldPattern[s] : (s === patternMin || s === patternMax ? 2 : Math.max(2, 5 - Math.abs(s)));
+    pattern[s] = Math.max(1, count);
+    const color = scoreColor(s, patternMin, patternMax);
+    html += `<div class="pattern-col">
+      <div class="score-label">${s > 0 ? '+' : ''}${s}</div>`;
+    for (let i = 0; i < pattern[s]; i++) {
+      html += `<div class="pattern-cell" style="background:${color}"></div>`;
+    }
+    html += `<div class="count-display" id="pc-${s}">${pattern[s]}</div>
+      <div class="pattern-btns">
+        <button class="btn-secondary" onclick="adjustPattern(${s},-1)">-</button>
+        <button class="btn-secondary" onclick="adjustPattern(${s},1)">+</button>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updatePatternTotal();
+}
+
+function adjustPattern(score, delta) {
+  pattern[score] = Math.max(1, (pattern[score] || 1) + delta);
+  const container = document.getElementById('pattern-designer');
+  let html = '<div class="pattern-grid">';
+  for (let s = patternMin; s <= patternMax; s++) {
+    const color = scoreColor(s, patternMin, patternMax);
+    html += `<div class="pattern-col"><div class="score-label">${s > 0 ? '+' : ''}${s}</div>`;
+    for (let i = 0; i < pattern[s]; i++) {
+      html += `<div class="pattern-cell" style="background:${color}"></div>`;
+    }
+    html += `<div class="count-display">${pattern[s]}</div>
+      <div class="pattern-btns">
+        <button class="btn-secondary" onclick="adjustPattern(${s},-1)">-</button>
+        <button class="btn-secondary" onclick="adjustPattern(${s},1)">+</button>
+      </div></div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updatePatternTotal();
+}
+
+function patternTotal() {
+  return Object.values(pattern).reduce((a, b) => a + b, 0);
+}
+
+function updatePatternTotal() {
+  const total = patternTotal();
+  document.getElementById('pattern-total').textContent = `Total cards needed: ${total}`;
+  const warn = document.getElementById('pattern-warning');
+  if (statements.length && statements.length !== total) {
+    warn.textContent = `Warning: You have ${statements.length} statements but the pattern requires ${total} cards.`;
+    warn.classList.remove('hidden');
+  } else {
+    warn.classList.add('hidden');
+  }
+}
+
+// Statements
+function loadBulkStatements() {
+  const text = document.getElementById('stmt-bulk').value.trim();
+  if (!text) return;
+  statements = text.split('\n').map(l => l.trim()).filter(l => l);
+  document.getElementById('stmt-bulk').value = '';
+  renderStatements();
+}
+
+function addSingleStatement() {
+  const input = document.getElementById('stmt-single');
+  const text = input.value.trim();
+  if (!text) return;
+  statements.push(text);
+  input.value = '';
+  renderStatements();
+}
+
+function removeStatement(idx) {
+  statements.splice(idx, 1);
+  renderStatements();
+}
+
+function editStatement(idx) {
+  const newText = prompt('Edit statement:', statements[idx]);
+  if (newText !== null && newText.trim()) {
+    statements[idx] = newText.trim();
+    renderStatements();
+  }
+}
+
+function renderStatements() {
+  const list = document.getElementById('stmt-list');
+  if (!statements.length) {
+    list.innerHTML = '<div style="padding:12px;color:#999;text-align:center">No statements added yet.</div>';
+  } else {
+    list.innerHTML = statements.map((s, i) =>
+      `<div class="stmt-item">
+        <span class="num">${i + 1}.</span>
+        <span class="text">${escHtml(s)}</span>
+        <button class="btn-secondary" onclick="editStatement(${i})">Edit</button>
+        <button class="btn-danger" onclick="removeStatement(${i})">Del</button>
+      </div>`
+    ).join('');
+  }
+  const total = patternTotal();
+  document.getElementById('stmt-count').textContent = `${statements.length} statement(s)` + (total ? ` — pattern needs ${total}` : '');
+  const mm = document.getElementById('stmt-mismatch');
+  if (total && statements.length !== total) {
+    mm.textContent = `Mismatch: ${statements.length} statements vs ${total} required by pattern.`;
+    mm.classList.remove('hidden');
+  } else {
+    mm.classList.add('hidden');
+  }
+}
+
+// Demographic Questions
+function toggleDqOptions() {
+  const type = document.getElementById('dq-type').value;
+  document.getElementById('dq-options-area').classList.toggle('hidden', !['select','radio'].includes(type));
+}
+
+function addDemoQuestion() {
+  const text = document.getElementById('dq-text').value.trim();
+  const type = document.getElementById('dq-type').value;
+  const required = document.getElementById('dq-required').checked;
+  if (!text) return alert('Enter question text.');
+  const q = { text, type, required };
+  if (['select','radio'].includes(type)) {
+    const opts = document.getElementById('dq-options').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (!opts.length) return alert('Enter at least one option.');
+    q.options = opts;
+  }
+  demoQuestions.push(q);
+  document.getElementById('dq-text').value = '';
+  document.getElementById('dq-options').value = '';
+  renderDemoQuestions();
+}
+
+function removeDemoQuestion(idx) {
+  demoQuestions.splice(idx, 1);
+  renderDemoQuestions();
+}
+
+function renderDemoQuestions() {
+  const list = document.getElementById('dq-list');
+  document.getElementById('dq-count').textContent = demoQuestions.length + ' question(s)';
+  if (!demoQuestions.length) {
+    list.innerHTML = '<div style="padding:12px;color:#999;text-align:center">No questions added. (optional)</div>';
+    return;
+  }
+  const typeLabels = { text: 'Text', number: 'Number', select: 'Dropdown', radio: 'Radio' };
+  list.innerHTML = demoQuestions.map((q, i) =>
+    `<div class="stmt-item">
+      <span class="num">${i + 1}.</span>
+      <span class="text">${escHtml(q.text)} <span style="color:#999;font-size:0.8rem">[${typeLabels[q.type]}]</span>${q.required ? ' <span style="color:#d9534f">*</span>' : ''}${q.options ? ' <span style="color:#999;font-size:0.8rem">(' + q.options.length + ' options)</span>' : ''}</span>
+      <button class="btn-danger" onclick="removeDemoQuestion(${i})">Delete</button>
+    </div>`
+  ).join('');
+}
+
+// Summary & Generate
+function renderSummary() {
+  const name = document.getElementById('project-name').value || '(untitled)';
+  const prefix = document.getElementById('id-prefix').value || 'P';
+  const count = parseInt(document.getElementById('participant-count').value) || 1;
+  const total = patternTotal();
+  const scores = Object.keys(pattern).map(Number).sort((a,b)=>a-b);
+  document.getElementById('config-summary').innerHTML =
+    `<p><strong>Project:</strong> ${escHtml(name)}</p>
+     <p><strong>Prefix:</strong> ${escHtml(prefix)}</p>
+     <p><strong>Participants:</strong> ${count}</p>
+     <p><strong>Score range:</strong> ${scores[0]} ~ ${scores[scores.length-1]}</p>
+     <p><strong>Pattern total:</strong> ${total}</p>
+     <p><strong>Statements:</strong> ${statements.length}</p>
+     <p><strong>Info questions:</strong> ${demoQuestions.length}</p>` +
+    (statements.length !== total ? `<div class="warning">Statement count does not match pattern!</div>` : '');
+}
+
+async function saveAndGenerate() {
+  const prefix = document.getElementById('id-prefix').value || 'P';
+  const count = parseInt(document.getElementById('participant-count').value) || 1;
+  const cfg = {
+    projectName: document.getElementById('project-name').value || 'Q Study',
+    prefix: prefix,
+    participantCount: count,
+    studyDescription: document.getElementById('study-description').value.trim(),
+    centralQuestion: document.getElementById('central-question').value.trim(),
+    confidentialityNotice: document.getElementById('confidentiality-notice').value.trim(),
+    pattern: { ...pattern },
+    statements: statements.slice(),
+    demoQuestions: demoQuestions.slice()
+  };
+
+  try {
+    await api('POST', '/api/studies/' + currentStudyId + '/config', cfg);
+  } catch(e) {
+    alert('Failed to save config: ' + e.message);
+    return;
+  }
+
+  // Go back to dashboard
+  studyHasConfig = true;
+  showDashboard(cfg);
+}
+
+function copySingleLink(btn, url) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function copyAllLinks() {
+  const rows = document.querySelectorAll('#dash-links .link-row');
+  const lines = Array.from(rows).map(r => {
+    const id = r.querySelector('.link-id').textContent;
+    const url = r.querySelector('.link-url').textContent;
+    return id + '\t' + url;
+  }).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    const fb = document.getElementById('dash-copy-feedback');
+    fb.textContent = 'All links copied!';
+    setTimeout(() => fb.textContent = '', 2000);
+  });
+}
+
+// ============== DATA MANAGEMENT ==============
+async function renderResponses() {
+  const wrap = document.getElementById('responses-table-wrap');
+  try {
+    const responses = await api('GET', '/api/studies/' + currentStudyId + '/responses');
+    if (!responses.length) {
+      wrap.innerHTML = '<p style="color:#999">No responses yet.</p>';
+      return;
+    }
+    let html = '<table><thead><tr><th>ID</th><th>Timestamp</th><th>Scores (preview)</th><th></th></tr></thead><tbody>';
+    responses.forEach((r, i) => {
+      const scores = r.scores ? r.scores.slice(0, 5).join(', ') + (r.scores.length > 5 ? '...' : '') : '';
+      html += `<tr>
+        <td>${escHtml(r.participantId)}</td>
+        <td>${r.timestamp || ''}</td>
+        <td>${scores}</td>
+        <td><button class="btn-danger" onclick="deleteResponse(${i})">Delete</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p class="error">Failed to load responses: ' + escHtml(e.message) + '</p>';
+  }
+}
+
+async function deleteResponse(idx) {
+  if (!confirm('Delete this response?')) return;
+  try {
+    await api('DELETE', '/api/studies/' + currentStudyId + '/responses/' + idx);
+    renderResponses();
+  } catch(e) {
+    alert('Failed to delete: ' + e.message);
+  }
+}
+
+async function clearAllResponses() {
+  if (!confirm('Delete ALL responses? This cannot be undone.')) return;
+  try {
+    await api('DELETE', '/api/studies/' + currentStudyId + '/responses');
+    renderResponses();
+  } catch(e) {
+    alert('Failed to delete: ' + e.message);
+  }
+}
+
+// ============== KENQ EXPORT ==============
+function exportXLSX() {
+  window.location.href = BASE + '/api/studies/' + currentStudyId + '/export';
+}
+
+function exportDemographics() {
+  window.location.href = BASE + '/api/studies/' + currentStudyId + '/export-demographics';
+}
+
+// ============== TRANSLATIONS ==============
+const LANGS = {
+  en: { label: 'English', strings: {
+    enterPid: 'Please enter your participant ID to begin.',
+    pidPlaceholder: 'Participant ID',
+    beginSorting: 'Begin Sorting',
+    noStudy: 'No Study Found',
+    noStudyMsg: 'Please ask the study administrator to set up the study first.',
+    enterPidError: 'Please enter a participant ID.',
+    pidDuplicate: 'This participant ID has already been used. Please choose a different one.',
+    respondentInfo: 'Respondent Information',
+    respondentInfoDesc: 'Please fill in the following information before starting the sort.',
+    continueBtn: 'Continue',
+    selectDefault: '-- Select --',
+    answerRequired: 'Please answer:',
+    preSortTitle: 'Pre-Sort: Initial Categorization',
+    preSortDesc: 'Read each statement and categorize it as Agree, Neutral, or Disagree.',
+    disagree: 'Disagree',
+    neutral: 'Neutral',
+    agree: 'Agree',
+    statementOf: 'Statement {0} of {1}',
+    preSortDone: 'Pre-sorting complete!',
+    preSortReview: 'Review your piles below, then proceed to the final sort. Cards will be color-coded by your categories.',
+    proceedFinal: 'Proceed to Final Sort',
+    redoPresort: 'Redo Pre-sort',
+    unsortedCards: 'Unsorted Cards',
+    cardsPlaced: '{0} / {1} cards placed',
+    submitSort: 'Submit Sort',
+    placeAllCards: 'Please place all cards before submitting. {0} card(s) remaining.',
+    submitFailed: 'Failed to submit:',
+    thankYou: 'Thank You!',
+    thankYouMsg: 'Your Q sort has been recorded successfully.',
+    language: 'Language'
+  }},
+  km: { label: 'ភាសាខ្មែរ', strings: {
+    enterPid: 'សូមបញ្ចូលលេខសម្គាល់អ្នកចូលរួមរបស់អ្នកដើម្បីចាប់ផ្តើម។',
+    pidPlaceholder: 'លេខសម្គាល់អ្នកចូលរួម',
+    beginSorting: 'ចាប់ផ្តើមតម្រៀប',
+    noStudy: 'រកមិនឃើញការសិក្សា',
+    noStudyMsg: 'សូមស្នើសុំអ្នកគ្រប់គ្រងការសិក្សាដើម្បីរៀបចំការសិក្សាជាមុនសិន។',
+    enterPidError: 'សូមបញ្ចូលលេខសម្គាល់អ្នកចូលរួម។',
+    pidDuplicate: 'លេខសម្គាល់អ្នកចូលរួមនេះត្រូវបានប្រើរួចហើយ។ សូមជ្រើសរើសមួយផ្សេង។',
+    respondentInfo: 'ព័ត៌មានអ្នកឆ្លើយតប',
+    respondentInfoDesc: 'សូមបំពេញព័ត៌មានខាងក្រោममុនពេលចាប់ផ្តើមតម្រៀប។',
+    continueBtn: 'បន្ត',
+    selectDefault: '-- ជ្រើសរើស --',
+    answerRequired: 'សូមឆ្លើយ:',
+    preSortTitle: 'តម្រៀបមុន: ការចាត់ថ្នាក់ដំបូង',
+    preSortDesc: 'អានសេចក្តីថ្លែងការណ៍នីមួយៗ ហើយចាត់ថ្នាក់ជា យល់ព្រម អព្យាក្រឹត ឬ មិនយល់ព្រម។',
+    disagree: 'មិនយល់ព្រម',
+    neutral: 'អព្យាក្រឹត',
+    agree: 'យល់ព្រម',
+    statementOf: 'សេចក្តីថ្លែងការណ៍ {0} នៃ {1}',
+    preSortDone: 'ការតម្រៀបមុនបានបញ្ចប់!',
+    preSortReview: 'ពិនិត្យមើលគំនរខាងក្រោម បន្ទាប់មកបន្តទៅការតម្រៀបចុងក្រោយ។ កាតនឹងមានពណ៌តាមប្រភេទរបស់អ្នក។',
+    proceedFinal: 'បន្តទៅការតម្រៀបចុងក្រោយ',
+    redoPresort: 'តម្រៀបមុនម្តងទៀត',
+    unsortedCards: 'កាតមិនទាន់តម្រៀប',
+    cardsPlaced: '{0} / {1} កាតបានដាក់',
+    submitSort: 'បញ្ជូនការតម្រៀប',
+    placeAllCards: 'សូមដាក់កាតទាំងអស់មុនពេលបញ្ជូន។ នៅសល់ {0} កាត។',
+    submitFailed: 'បរាជ័យក្នុងការបញ្ជូន:',
+    thankYou: 'សូមអរគុណ!',
+    thankYouMsg: 'ការតម្រៀប Q របស់អ្នកត្រូវបានកត់ត្រាដោយជោគជ័យ។',
+    language: 'ភាសា'
+  }},
+  tl: { label: 'Filipino', strings: {
+    enterPid: 'Mangyaring ilagay ang iyong participant ID upang magsimula.',
+    pidPlaceholder: 'Participant ID',
+    beginSorting: 'Simulan ang Pag-uuri',
+    noStudy: 'Walang Nahanap na Pag-aaral',
+    noStudyMsg: 'Mangyaring hilingin sa administrator ng pag-aaral na i-set up muna ang pag-aaral.',
+    enterPidError: 'Mangyaring maglagay ng participant ID.',
+    pidDuplicate: 'Ang participant ID na ito ay nagamit na. Mangyaring pumili ng iba.',
+    respondentInfo: 'Impormasyon ng Respondent',
+    respondentInfoDesc: 'Mangyaring punan ang sumusunod na impormasyon bago simulan ang pag-uuri.',
+    continueBtn: 'Magpatuloy',
+    selectDefault: '-- Pumili --',
+    answerRequired: 'Mangyaring sagutin:',
+    preSortTitle: 'Pre-Sort: Paunang Pagkakategorya',
+    preSortDesc: 'Basahin ang bawat pahayag at ikategorya bilang Sumasang-ayon, Neutral, o Hindi Sumasang-ayon.',
+    disagree: 'Hindi Sumasang-ayon',
+    neutral: 'Neutral',
+    agree: 'Sumasang-ayon',
+    statementOf: 'Pahayag {0} sa {1}',
+    preSortDone: 'Tapos na ang pre-sorting!',
+    preSortReview: 'Suriin ang iyong mga grupo sa ibaba, pagkatapos magpatuloy sa huling pag-uuri. Ang mga card ay may kulay ayon sa iyong mga kategorya.',
+    proceedFinal: 'Magpatuloy sa Huling Pag-uuri',
+    redoPresort: 'Ulitin ang Pre-sort',
+    unsortedCards: 'Hindi Pa Naka-uri na Cards',
+    cardsPlaced: '{0} / {1} cards nailagay',
+    submitSort: 'Isumite ang Pag-uuri',
+    placeAllCards: 'Mangyaring ilagay ang lahat ng cards bago isumite. {0} (na) card ang natitirang.',
+    submitFailed: 'Hindi naisumite:',
+    thankYou: 'Salamat!',
+    thankYouMsg: 'Ang iyong Q sort ay matagumpay na naitala.',
+    language: 'Wika'
+  }},
+  id: { label: 'Bahasa Indonesia', strings: {
+    enterPid: 'Silakan masukkan ID peserta Anda untuk memulai.',
+    pidPlaceholder: 'ID Peserta',
+    beginSorting: 'Mulai Sortir',
+    noStudy: 'Studi Tidak Ditemukan',
+    noStudyMsg: 'Silakan minta administrator studi untuk mengatur studi terlebih dahulu.',
+    enterPidError: 'Silakan masukkan ID peserta.',
+    pidDuplicate: 'ID peserta ini sudah digunakan. Silakan pilih yang lain.',
+    respondentInfo: 'Informasi Responden',
+    respondentInfoDesc: 'Silakan isi informasi berikut sebelum memulai sortir.',
+    continueBtn: 'Lanjutkan',
+    selectDefault: '-- Pilih --',
+    answerRequired: 'Silakan jawab:',
+    preSortTitle: 'Pra-Sortir: Kategorisasi Awal',
+    preSortDesc: 'Baca setiap pernyataan dan kategorikan sebagai Setuju, Netral, atau Tidak Setuju.',
+    disagree: 'Tidak Setuju',
+    neutral: 'Netral',
+    agree: 'Setuju',
+    statementOf: 'Pernyataan {0} dari {1}',
+    preSortDone: 'Pra-sortir selesai!',
+    preSortReview: 'Tinjau tumpukan Anda di bawah, lalu lanjutkan ke sortir akhir. Kartu akan diberi warna sesuai kategori Anda.',
+    proceedFinal: 'Lanjutkan ke Sortir Akhir',
+    redoPresort: 'Ulangi Pra-sortir',
+    unsortedCards: 'Kartu Belum Disortir',
+    cardsPlaced: '{0} / {1} kartu ditempatkan',
+    submitSort: 'Kirim Sortir',
+    placeAllCards: 'Silakan tempatkan semua kartu sebelum mengirim. {0} kartu tersisa.',
+    submitFailed: 'Gagal mengirim:',
+    thankYou: 'Terima Kasih!',
+    thankYouMsg: 'Q sort Anda telah berhasil dicatat.',
+    language: 'Bahasa'
+  }},
+  fr: { label: 'Français', strings: {
+    enterPid: 'Veuillez entrer votre identifiant de participant pour commencer.',
+    pidPlaceholder: 'Identifiant du participant',
+    beginSorting: 'Commencer le tri',
+    noStudy: 'Étude non trouvée',
+    noStudyMsg: "Veuillez demander à l'administrateur de l'étude de configurer l'étude d'abord.",
+    enterPidError: 'Veuillez entrer un identifiant de participant.',
+    pidDuplicate: 'Cet identifiant de participant a déjà été utilisé. Veuillez en choisir un autre.',
+    respondentInfo: 'Informations du répondant',
+    respondentInfoDesc: 'Veuillez remplir les informations suivantes avant de commencer le tri.',
+    continueBtn: 'Continuer',
+    selectDefault: '-- Sélectionner --',
+    answerRequired: 'Veuillez répondre :',
+    preSortTitle: 'Pré-tri : Catégorisation initiale',
+    preSortDesc: "Lisez chaque énoncé et catégorisez-le comme D'accord, Neutre ou Pas d'accord.",
+    disagree: "Pas d'accord",
+    neutral: 'Neutre',
+    agree: "D'accord",
+    statementOf: 'Énoncé {0} sur {1}',
+    preSortDone: 'Pré-tri terminé !',
+    preSortReview: 'Examinez vos piles ci-dessous, puis passez au tri final. Les cartes seront colorées selon vos catégories.',
+    proceedFinal: 'Passer au tri final',
+    redoPresort: 'Refaire le pré-tri',
+    unsortedCards: 'Cartes non triées',
+    cardsPlaced: '{0} / {1} cartes placées',
+    submitSort: 'Soumettre le tri',
+    placeAllCards: 'Veuillez placer toutes les cartes avant de soumettre. {0} carte(s) restante(s).',
+    submitFailed: 'Échec de la soumission :',
+    thankYou: 'Merci !',
+    thankYouMsg: 'Votre Q sort a été enregistré avec succès.',
+    language: 'Langue'
+  }},
+  es: { label: 'Español', strings: {
+    enterPid: 'Por favor ingrese su ID de participante para comenzar.',
+    pidPlaceholder: 'ID del participante',
+    beginSorting: 'Comenzar la clasificación',
+    noStudy: 'Estudio no encontrado',
+    noStudyMsg: 'Por favor pida al administrador del estudio que configure el estudio primero.',
+    enterPidError: 'Por favor ingrese un ID de participante.',
+    pidDuplicate: 'Este ID de participante ya ha sido utilizado. Por favor elija otro.',
+    respondentInfo: 'Información del encuestado',
+    respondentInfoDesc: 'Por favor complete la siguiente información antes de comenzar la clasificación.',
+    continueBtn: 'Continuar',
+    selectDefault: '-- Seleccionar --',
+    answerRequired: 'Por favor responda:',
+    preSortTitle: 'Pre-clasificación: Categorización inicial',
+    preSortDesc: 'Lea cada enunciado y clasifíquelo como De acuerdo, Neutral o En desacuerdo.',
+    disagree: 'En desacuerdo',
+    neutral: 'Neutral',
+    agree: 'De acuerdo',
+    statementOf: 'Enunciado {0} de {1}',
+    preSortDone: '¡Pre-clasificación completada!',
+    preSortReview: 'Revise sus grupos a continuación, luego proceda a la clasificación final. Las tarjetas estarán codificadas por color según sus categorías.',
+    proceedFinal: 'Proceder a la clasificación final',
+    redoPresort: 'Rehacer pre-clasificación',
+    unsortedCards: 'Tarjetas sin clasificar',
+    cardsPlaced: '{0} / {1} tarjetas colocadas',
+    submitSort: 'Enviar clasificación',
+    placeAllCards: 'Por favor coloque todas las tarjetas antes de enviar. {0} tarjeta(s) restante(s).',
+    submitFailed: 'Error al enviar:',
+    thankYou: '¡Gracias!',
+    thankYouMsg: 'Su Q sort ha sido registrado exitosamente.',
+    language: 'Idioma'
+  }},
+  vi: { label: 'Tiếng Việt', strings: {
+    enterPid: 'Vui lòng nhập mã người tham gia của bạn để bắt đầu.',
+    pidPlaceholder: 'Mã người tham gia',
+    beginSorting: 'Bắt đầu phân loại',
+    noStudy: 'Không tìm thấy nghiên cứu',
+    noStudyMsg: 'Vui lòng yêu cầu quản trị viên nghiên cứu thiết lập nghiên cứu trước.',
+    enterPidError: 'Vui lòng nhập mã người tham gia.',
+    pidDuplicate: 'Mã người tham gia này đã được sử dụng. Vui lòng chọn mã khác.',
+    respondentInfo: 'Thông tin người trả lời',
+    respondentInfoDesc: 'Vui lòng điền thông tin sau trước khi bắt đầu phân loại.',
+    continueBtn: 'Tiếp tục',
+    selectDefault: '-- Chọn --',
+    answerRequired: 'Vui lòng trả lời:',
+    preSortTitle: 'Phân loại sơ bộ: Phân loại ban đầu',
+    preSortDesc: 'Đọc từng câu phát biểu và phân loại thành Đồng ý, Trung lập hoặc Không đồng ý.',
+    disagree: 'Không đồng ý',
+    neutral: 'Trung lập',
+    agree: 'Đồng ý',
+    statementOf: 'Câu phát biểu {0} trong {1}',
+    preSortDone: 'Phân loại sơ bộ hoàn tất!',
+    preSortReview: 'Xem lại các nhóm bên dưới, sau đó tiếp tục phân loại cuối cùng. Thẻ sẽ được tô màu theo danh mục của bạn.',
+    proceedFinal: 'Tiếp tục phân loại cuối cùng',
+    redoPresort: 'Làm lại phân loại sơ bộ',
+    unsortedCards: 'Thẻ chưa phân loại',
+    cardsPlaced: '{0} / {1} thẻ đã đặt',
+    submitSort: 'Gửi phân loại',
+    placeAllCards: 'Vui lòng đặt tất cả thẻ trước khi gửi. Còn {0} thẻ.',
+    submitFailed: 'Gửi thất bại:',
+    thankYou: 'Cảm ơn bạn!',
+    thankYouMsg: 'Q sort của bạn đã được ghi nhận thành công.',
+    language: 'Ngôn ngữ'
+  }}
+};
+let currentLang = 'en';
+function t(key) {
+  return LANGS[currentLang]?.strings[key] || LANGS.en.strings[key] || key;
+}
+function tFmt(key, ...args) {
+  let s = t(key);
+  args.forEach((a, i) => { s = s.replace(`{${i}}`, a); });
+  return s;
+}
+
+function switchLanguage(lang) {
+  currentLang = lang;
+  // ID screen
+  const idInstr = document.querySelector('#respond-id-screen .card > p');
+  if (idInstr) idInstr.textContent = t('enterPid');
+  const pidInput = document.getElementById('participant-id');
+  if (pidInput) pidInput.placeholder = t('pidPlaceholder');
+  const beginBtn = document.querySelector('#respond-id-screen .btn-primary');
+  if (beginBtn) beginBtn.textContent = t('beginSorting');
+  // Language label
+  const langLabel = document.getElementById('lang-label');
+  if (langLabel) langLabel.textContent = t('language');
+  // Demo screen
+  const demoTitle = document.querySelector('#respond-demo-screen h2');
+  if (demoTitle) demoTitle.textContent = t('respondentInfo');
+  const demoDesc = document.querySelector('#respond-demo-screen .card > p');
+  if (demoDesc) demoDesc.textContent = t('respondentInfoDesc');
+  const demoBtn = document.querySelector('#respond-demo-screen .btn-primary');
+  if (demoBtn) demoBtn.textContent = t('continueBtn');
+  // Pre-sort screen
+  const presortTitle = document.querySelector('#respond-presort-screen h2');
+  if (presortTitle) presortTitle.textContent = t('preSortTitle');
+  const presortDesc = document.querySelector('#respond-presort-screen .card > p');
+  if (presortDesc) presortDesc.textContent = t('preSortDesc');
+  document.querySelector('.btn-disagree').textContent = t('disagree');
+  document.querySelector('.btn-neutral').textContent = t('neutral');
+  document.querySelector('.btn-agree').textContent = t('agree');
+  const presortDoneH3 = document.querySelector('#presort-done h3');
+  if (presortDoneH3) presortDoneH3.textContent = t('preSortDone');
+  const presortReviewP = document.querySelector('#presort-done p');
+  if (presortReviewP) presortReviewP.textContent = t('preSortReview');
+  const proceedBtn = document.querySelector('#presort-done .btn-success');
+  if (proceedBtn) proceedBtn.textContent = t('proceedFinal');
+  const redoBtn = document.querySelector('#presort-done .btn-secondary');
+  if (redoBtn) redoBtn.textContent = t('redoPresort');
+  // Pile labels
+  const pDCount = document.getElementById('pile-d-count');
+  const pNCount = document.getElementById('pile-n-count');
+  const pACount = document.getElementById('pile-a-count');
+  if (pDCount) pDCount.parentElement.childNodes[0].textContent = t('disagree') + ' (';
+  if (pNCount) pNCount.parentElement.childNodes[0].textContent = t('neutral') + ' (';
+  if (pACount) pACount.parentElement.childNodes[0].textContent = t('agree') + ' (';
+  // Sort screen
+  const unsortedH3 = document.querySelector('.pile-area h3');
+  if (unsortedH3) {
+    const countSpan = document.getElementById('pile-count');
+    unsortedH3.innerHTML = '';
+    unsortedH3.appendChild(document.createTextNode(t('unsortedCards') + ' '));
+    if (countSpan) unsortedH3.appendChild(countSpan);
+  }
+  const submitBtn = document.getElementById('submit-sort-btn');
+  if (submitBtn) submitBtn.textContent = t('submitSort');
+  // Thank you
+  const tyH2 = document.querySelector('#respond-thanks h2');
+  if (tyH2) tyH2.textContent = t('thankYou');
+  const tyP = document.querySelector('#respond-thanks p');
+  if (tyP) tyP.textContent = t('thankYouMsg');
+}
+
+// ============== RESPONDENT ==============
+async function loadRespondentConfig(urlPid) {
+  try {
+    config = await api('GET', '/api/studies/' + currentStudyId + '/config');
+  } catch(e) {
+    config = null;
+  }
+
+  if (!config) {
+    document.getElementById('respond-id-screen').innerHTML = '<div class="card" style="text-align:center"><h2>' + t('noStudy') + '</h2><p>' + t('noStudyMsg') + '</p></div>';
+    return;
+  }
+
+  document.getElementById('respond-project-title').textContent = config.projectName || 'Q Sort';
+
+  // Show study description on first screen
+  if (config.studyDescription) {
+    const descEl = document.getElementById('respond-study-description');
+    descEl.textContent = config.studyDescription;
+    descEl.classList.remove('hidden');
+  }
+  // Show confidentiality notice on first screen
+  if (config.confidentialityNotice) {
+    const confEl = document.getElementById('respond-confidentiality');
+    confEl.textContent = config.confidentialityNotice;
+    confEl.classList.remove('hidden');
+  }
+  // Show central question on pre-sort and sort screens
+  if (config.centralQuestion) {
+    const presortQ = document.getElementById('presort-central-question');
+    presortQ.textContent = config.centralQuestion;
+    presortQ.classList.remove('hidden');
+    const sortQ = document.getElementById('sort-central-question');
+    sortQ.textContent = config.centralQuestion;
+    sortQ.classList.remove('hidden');
+  }
+
+  // Check for pid in URL
+  if (urlPid) {
+    document.getElementById('participant-id').value = urlPid;
+    document.getElementById('participant-id').readOnly = true;
+    document.getElementById('participant-id').style.background = '#f0f0f0';
+  } else {
+    // Fallback: pre-fill with next number
+    try {
+      const responses = await api('GET', '/api/studies/' + currentStudyId + '/responses');
+      const nextNum = responses.length + 1;
+      document.getElementById('participant-id').value = (config.prefix || 'P') + nextNum;
+    } catch(e) {
+      document.getElementById('participant-id').value = (config.prefix || 'P') + '1';
+    }
+  }
+}
+
+async function startSort() {
+  const pid = document.getElementById('participant-id').value.trim();
+  if (!pid) {
+    const err = document.getElementById('respond-id-error');
+    err.textContent = t('enterPidError');
+    err.classList.remove('hidden');
+    return;
+  }
+
+  // Check duplicate via server
+  try {
+    const responses = await api('GET', '/api/studies/' + currentStudyId + '/responses');
+    if (responses.some(r => r.participantId === pid)) {
+      const err = document.getElementById('respond-id-error');
+      err.textContent = t('pidDuplicate');
+      err.classList.remove('hidden');
+      return;
+    }
+  } catch(e) {}
+
+  document.getElementById('respond-id-screen').classList.add('hidden');
+
+  // If there are demographic questions, show demo form first
+  if (config.demoQuestions && config.demoQuestions.length) {
+    sortData.pid = pid;
+    showDemoForm();
+  } else {
+    document.getElementById('respond-presort-screen').classList.remove('hidden');
+    initPresort(pid);
+  }
+}
+
+// ============== DEMOGRAPHIC FORM ==============
+let demoAnswers = {};
+
+function showDemoForm() {
+  document.getElementById('respond-demo-screen').classList.remove('hidden');
+  const form = document.getElementById('demo-form');
+  form.innerHTML = config.demoQuestions.map((q, i) => {
+    const reqMark = q.required ? ' <span style="color:#d9534f">*</span>' : '';
+    let inputHtml = '';
+    if (q.type === 'text') {
+      inputHtml = `<input id="demo-q-${i}" style="width:100%">`;
+    } else if (q.type === 'number') {
+      inputHtml = `<input id="demo-q-${i}" type="number" style="width:100%">`;
+    } else if (q.type === 'select') {
+      inputHtml = `<select id="demo-q-${i}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px">
+        <option value="">-- Select --</option>
+        ${q.options.map(o => `<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}
+      </select>`;
+    } else if (q.type === 'radio') {
+      inputHtml = `<div id="demo-q-${i}" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+        ${q.options.map((o, oi) => `<label style="display:flex;align-items:center;gap:4px;font-weight:normal;font-size:0.9rem;cursor:pointer">
+          <input type="radio" name="demo-radio-${i}" value="${escHtml(o)}"> ${escHtml(o)}
+        </label>`).join('')}
+      </div>`;
+    }
+    return `<div style="margin-bottom:14px">
+      <label>${escHtml(q.text)}${reqMark}</label>
+      ${inputHtml}
+    </div>`;
+  }).join('');
+}
+
+function submitDemoForm() {
+  demoAnswers = {};
+  const errEl = document.getElementById('demo-error');
+  errEl.classList.add('hidden');
+
+  for (let i = 0; i < config.demoQuestions.length; i++) {
+    const q = config.demoQuestions[i];
+    let val = '';
+    if (q.type === 'radio') {
+      const checked = document.querySelector(`input[name="demo-radio-${i}"]:checked`);
+      val = checked ? checked.value : '';
+    } else {
+      const el = document.getElementById('demo-q-' + i);
+      val = el ? el.value.trim() : '';
+    }
+    if (q.required && !val) {
+      errEl.textContent = t('answerRequired') + ' "' + q.text + '"';
+      errEl.classList.remove('hidden');
+      return;
+    }
+    demoAnswers[q.text] = val;
+  }
+
+  document.getElementById('respond-demo-screen').classList.add('hidden');
+  document.getElementById('respond-presort-screen').classList.remove('hidden');
+  initPresort(sortData.pid);
+}
+
+// ============== PRE-SORT ==============
+function initPresort(pid) {
+  sortData.pid = pid;
+  presortData = { disagree: [], neutral: [], agree: [] };
+  presortIdx = 0;
+  // Shuffle statement indices
+  presortOrder = config.statements.map((_, i) => i);
+  for (let i = presortOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [presortOrder[i], presortOrder[j]] = [presortOrder[j], presortOrder[i]];
+  }
+  document.getElementById('presort-card-area').classList.remove('hidden');
+  document.getElementById('presort-done').classList.add('hidden');
+  renderPresortCard();
+  renderPresortPiles();
+}
+
+function renderPresortCard() {
+  if (presortIdx >= presortOrder.length) {
+    document.getElementById('presort-card-area').classList.add('hidden');
+    document.getElementById('presort-done').classList.remove('hidden');
+    return;
+  }
+  const stmtIdx = presortOrder[presortIdx];
+  document.getElementById('presort-counter').textContent = tFmt('statementOf', presortIdx + 1, presortOrder.length);
+  document.getElementById('presort-statement').textContent = config.statements[stmtIdx];
+}
+
+function presortChoice(category) {
+  if (presortIdx >= presortOrder.length) return;
+  const stmtIdx = presortOrder[presortIdx];
+  presortData[category].push(stmtIdx);
+  presortIdx++;
+  renderPresortCard();
+  renderPresortPiles();
+}
+
+function renderPresortPiles() {
+  ['disagree', 'neutral', 'agree'].forEach(cat => {
+    const countId = cat === 'disagree' ? 'pile-d-count' : cat === 'neutral' ? 'pile-n-count' : 'pile-a-count';
+    document.getElementById(countId).textContent = presortData[cat].length;
+    const container = document.getElementById('pile-' + cat);
+    container.innerHTML = presortData[cat].map(idx =>
+      `<div class="pile-card"><strong>#${idx + 1}</strong> ${escHtml(config.statements[idx])}</div>`
+    ).join('');
+  });
+}
+
+function redoPresort() {
+  initPresort(sortData.pid);
+}
+
+function goToFinalSort() {
+  document.getElementById('respond-presort-screen').classList.add('hidden');
+  document.getElementById('respond-sort-screen').classList.remove('hidden');
+  initSortInterface(sortData.pid);
+}
+
+// ============== Q-SORT INTERFACE ==============
+let sortData = {
+  pid: '',
+  stmts: [],
+  pattern: {},
+  pile: [],
+  grid: {},
+  totalCards: 0
+};
+
+function initSortInterface(pid) {
+  sortData.pid = pid;
+  sortData.stmts = config.statements.slice();
+  sortData.pattern = { ...config.pattern };
+  sortData.totalCards = sortData.stmts.length;
+  // Order pile by presort: disagree → neutral → agree
+  sortData.pile = [...presortData.disagree, ...presortData.neutral, ...presortData.agree];
+  // Fallback if presort was empty
+  if (!sortData.pile.length) sortData.pile = sortData.stmts.map((_, i) => i);
+  sortData.grid = {};
+
+  const scores = Object.keys(sortData.pattern).map(Number).sort((a, b) => a - b);
+  scores.forEach(s => sortData.grid[s] = []);
+
+  document.getElementById('sort-project-title').textContent = config.projectName || 'Q Sort';
+  document.getElementById('sort-participant-label').textContent = 'Participant: ' + pid;
+
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+function getPresortClass(idx) {
+  if (presortData.disagree.includes(idx)) return 'presort-disagree';
+  if (presortData.agree.includes(idx)) return 'presort-agree';
+  if (presortData.neutral.includes(idx)) return 'presort-neutral';
+  return '';
+}
+
+function renderPile() {
+  const container = document.getElementById('pile-cards');
+  container.innerHTML = sortData.pile.map(idx =>
+    `<div class="q-card ${getPresortClass(idx)} ${selectedCard === idx ? 'selected' : ''}" data-idx="${idx}" draggable="true"
+      onclick="selectCard(${idx})" ondragstart="onDragStart(event,${idx})"
+      ontouchstart="onTouchStart(event,${idx})">
+      <span class="card-num">#${idx + 1}</span> ${escHtml(sortData.stmts[idx])}
+    </div>`
+  ).join('');
+  document.getElementById('pile-count').textContent = `(${sortData.pile.length} remaining)`;
+}
+
+function renderGrid() {
+  const container = document.getElementById('sort-grid');
+  const scores = Object.keys(sortData.pattern).map(Number).sort((a, b) => a - b);
+
+  container.innerHTML = scores.map(s => {
+    const max = sortData.pattern[s];
+    const cards = sortData.grid[s] || [];
+    const isFull = cards.length >= max;
+    const color = scoreColor(s, scores[0], scores[scores.length - 1]);
+
+    let slotsHtml = '';
+    for (let i = 0; i < max; i++) {
+      if (i < cards.length) {
+        const idx = cards[i];
+        slotsHtml += `<div class="col-slot">
+          <div class="q-card ${getPresortClass(idx)} ${selectedCard === idx ? 'selected' : ''}" data-idx="${idx}" draggable="true"
+            onclick="selectCard(${idx})" ondragstart="onDragStart(event,${idx})"
+            ontouchstart="onTouchStart(event,${idx})">
+            <span class="card-num">#${idx + 1}</span> ${escHtml(sortData.stmts[idx])}
+          </div>
+        </div>`;
+      } else {
+        slotsHtml += `<div class="col-slot"></div>`;
+      }
+    }
+
+    return `<div class="grid-column ${isFull ? 'full' : ''}" data-score="${s}" style="background:${color}"
+      ondragover="onDragOver(event)" ondrop="onDrop(event,${s})" onclick="placeInColumn(${s})">
+      <div class="col-header">${s > 0 ? '+' : ''}${s}</div>
+      <div class="col-count">${cards.length}/${max}</div>
+      <div class="col-slots">${slotsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateProgress() {
+  const placed = sortData.totalCards - sortData.pile.length;
+  const pct = sortData.totalCards ? (placed / sortData.totalCards * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = tFmt('cardsPlaced', placed, sortData.totalCards);
+  document.getElementById('submit-sort-btn').disabled = sortData.pile.length > 0;
+}
+
+// Card selection (click-to-place fallback)
+function selectCard(idx) {
+  selectedCard = selectedCard === idx ? null : idx;
+  renderPile();
+  renderGrid();
+}
+
+function placeInColumn(score) {
+  if (selectedCard === null) return;
+  const max = sortData.pattern[score];
+  const cards = sortData.grid[score];
+  if (cards.length >= max) return;
+
+  removeCardFromAll(selectedCard);
+  cards.push(selectedCard);
+  selectedCard = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+function removeCardFromAll(idx) {
+  const pileIdx = sortData.pile.indexOf(idx);
+  if (pileIdx !== -1) sortData.pile.splice(pileIdx, 1);
+  for (const s in sortData.grid) {
+    const gi = sortData.grid[s].indexOf(idx);
+    if (gi !== -1) sortData.grid[s].splice(gi, 1);
+  }
+}
+
+function returnToPile(idx) {
+  removeCardFromAll(idx);
+  sortData.pile.push(idx);
+  sortData.pile.sort((a, b) => a - b);
+  selectedCard = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+// ============== DRAG & DROP (Desktop) ==============
+let dragIdx = null;
+
+function onDragStart(e, idx) {
+  dragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', idx);
+  e.target.classList.add('dragging');
+  selectedCard = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function onDrop(e, score) {
+  e.preventDefault();
+  if (dragIdx === null) return;
+  const max = sortData.pattern[score];
+  const cards = sortData.grid[score];
+  if (cards.length >= max) { dragIdx = null; return; }
+  removeCardFromAll(dragIdx);
+  cards.push(dragIdx);
+  dragIdx = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+// Allow drop on pile area to return cards
+document.addEventListener('DOMContentLoaded', () => {
+  const pile = document.querySelector('.pile-area');
+  if (pile) {
+    pile.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    pile.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragIdx !== null) { returnToPile(dragIdx); dragIdx = null; }
+    });
+  }
+});
+
+// ============== TOUCH DRAG (Mobile) ==============
+function onTouchStart(e, idx) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const card = e.target.closest('.q-card');
+  if (!card) return;
+
+  const clone = card.cloneNode(true);
+  clone.classList.add('touch-clone');
+  clone.style.width = card.offsetWidth + 'px';
+  clone.style.left = (touch.clientX - card.offsetWidth / 2) + 'px';
+  clone.style.top = (touch.clientY - 20) + 'px';
+  document.body.appendChild(clone);
+
+  touchState = { idx, clone };
+
+  card.addEventListener('touchmove', onTouchMove, { passive: false });
+  card.addEventListener('touchend', onTouchEnd);
+  card.addEventListener('touchcancel', onTouchCancel);
+}
+
+function onTouchMove(e) {
+  if (!touchState) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchState.clone.style.left = (touch.clientX - touchState.clone.offsetWidth / 2) + 'px';
+  touchState.clone.style.top = (touch.clientY - 20) + 'px';
+
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (el) {
+    const col = el.closest('.grid-column');
+    if (col) col.classList.add('drag-over');
+  }
+}
+
+function onTouchEnd(e) {
+  if (!touchState) return;
+  const touch = e.changedTouches[0];
+  touchState.clone.remove();
+
+  const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (elUnder) {
+    const pileArea = elUnder.closest('.pile-area');
+    if (pileArea) {
+      returnToPile(touchState.idx);
+      cleanupTouch(e);
+      return;
+    }
+    const col = elUnder.closest('.grid-column');
+    if (col) {
+      const score = parseInt(col.dataset.score);
+      const max = sortData.pattern[score];
+      const cards = sortData.grid[score];
+      if (cards.length < max) {
+        removeCardFromAll(touchState.idx);
+        cards.push(touchState.idx);
+        renderPile();
+        renderGrid();
+        updateProgress();
+      }
+    }
+  }
+
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  cleanupTouch(e);
+}
+
+function onTouchCancel(e) {
+  if (touchState) touchState.clone.remove();
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  cleanupTouch(e);
+}
+
+function cleanupTouch(e) {
+  const card = e.target.closest('.q-card');
+  if (card) {
+    card.removeEventListener('touchmove', onTouchMove);
+    card.removeEventListener('touchend', onTouchEnd);
+    card.removeEventListener('touchcancel', onTouchCancel);
+  }
+  touchState = null;
+}
+
+// ============== SUBMIT SORT ==============
+async function submitSort() {
+  if (sortData.pile.length > 0) {
+    const err = document.getElementById('sort-error');
+    err.textContent = tFmt('placeAllCards', sortData.pile.length);
+    err.classList.remove('hidden');
+    return;
+  }
+
+  // Build scores array: index i = score assigned to statement i
+  const scores = new Array(sortData.totalCards);
+  for (const s in sortData.grid) {
+    sortData.grid[s].forEach(idx => {
+      scores[idx] = parseInt(s);
+    });
+  }
+
+  const response = {
+    participantId: sortData.pid,
+    timestamp: new Date().toISOString(),
+    scores: scores,
+    demographics: demoAnswers
+  };
+
+  try {
+    await api('POST', '/api/studies/' + currentStudyId + '/responses', response);
+    document.getElementById('respond-sort-screen').classList.add('hidden');
+    document.getElementById('respond-thanks').classList.remove('hidden');
+  } catch(e) {
+    const err = document.getElementById('sort-error');
+    err.textContent = t('submitFailed') + ' ' + e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+// ============== UTILITIES ==============
+function scoreColor(score, min, max) {
+  const range = max - min || 1;
+  const ratio = (score - min) / range;
+  // Monochrome: darker at extremes, lighter at center
+  const dist = Math.abs(ratio - 0.5) * 2; // 0 at center, 1 at extremes
+  const lightness = 98 - dist * 10; // 98% at center, 88% at extremes
+  return `hsl(0,0%,${lightness}%)`;
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============== INIT ==============
+initApp();
+</script>
+</body>
+</html>

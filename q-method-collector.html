@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Q Method Data Collector</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; }
+.site-logo { position: fixed; bottom: 12px; right: 16px; z-index: 9999; }
+.site-logo img { height: 80px; width: auto; }
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+h1 { font-size: 1.8rem; margin-bottom: 10px; }
+h2 { font-size: 1.3rem; margin-bottom: 10px; color: #555; }
+h3 { font-size: 1.1rem; margin-bottom: 8px; }
+button { cursor: pointer; padding: 8px 16px; border: none; border-radius: 4px; font-size: 0.95rem; transition: background 0.2s; }
+button:hover { opacity: 0.9; }
+.btn-primary { background: #4a90d9; color: #fff; }
+.btn-success { background: #5cb85c; color: #fff; }
+.btn-danger { background: #d9534f; color: #fff; }
+.btn-secondary { background: #777; color: #fff; }
+input, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; width: 100%; }
+input:focus, textarea:focus { outline: none; border-color: #4a90d9; }
+label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.9rem; }
+.card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.step-indicator { display: flex; gap: 4px; margin-bottom: 20px; }
+.step-dot { flex: 1; height: 6px; border-radius: 3px; background: #ddd; }
+.step-dot.active { background: #4a90d9; }
+.step-dot.done { background: #5cb85c; }
+.hidden { display: none !important; }
+.warning { background: #fcf8e3; border: 1px solid #f0c36d; color: #8a6d3b; padding: 10px; border-radius: 4px; margin: 10px 0; }
+.error { background: #f2dede; border: 1px solid #ebccd1; color: #a94442; padding: 10px; border-radius: 4px; margin: 10px 0; }
+.success { background: #dff0d8; border: 1px solid #d6e9c6; color: #3c763d; padding: 10px; border-radius: 4px; margin: 10px 0; }
+.tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 16px; }
+.tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 600; color: #777; }
+.tab.active { color: #4a90d9; border-bottom-color: #4a90d9; }
+.inline-group { display: flex; gap: 10px; align-items: flex-end; }
+.inline-group > div { flex: 1; }
+.stmt-list { max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px; }
+.stmt-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
+.stmt-item:last-child { border-bottom: none; }
+.stmt-item .num { font-weight: 700; color: #999; width: 30px; flex-shrink: 0; }
+.stmt-item .text { flex: 1; }
+.stmt-item button { padding: 2px 8px; font-size: 0.8rem; margin-left: 4px; }
+.pattern-grid { display: flex; gap: 2px; justify-content: center; align-items: flex-end; margin: 16px 0; }
+.pattern-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.pattern-col .score-label { font-weight: 700; font-size: 0.85rem; margin-bottom: 4px; }
+.pattern-col .count-display { font-size: 0.85rem; color: #666; margin-top: 4px; }
+.pattern-cell { width: 36px; height: 28px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.15); }
+.pattern-btns { display: flex; gap: 2px; margin-top: 4px; }
+.pattern-btns button { padding: 1px 8px; font-size: 0.85rem; border-radius: 3px; }
+.url-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; padding: 10px; word-break: break-all; font-family: monospace; font-size: 0.85rem; margin: 10px 0; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #fafafa; font-weight: 600; }
+
+/* Landing */
+.landing { text-align: center; padding: 60px 20px; }
+.landing h1 { font-size: 2.2rem; margin-bottom: 8px; }
+.landing p { color: #666; margin-bottom: 30px; font-size: 1.1rem; }
+.landing-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.landing-btn { padding: 20px 40px; font-size: 1.1rem; border-radius: 8px; min-width: 200px; }
+
+/* Q-Sort Grid */
+.qsort-container { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+.pile-area { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); min-height: 100px; max-height: 30vh; overflow-y: auto; }
+.pile-area h3 { margin-bottom: 8px; font-size: 0.95rem; color: #555; }
+.pile-cards { display: flex; flex-wrap: wrap; gap: 6px; }
+.q-card { background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 6px 8px; font-size: 0.8rem; cursor: grab; user-select: none; box-shadow: 0 1px 2px rgba(0,0,0,0.08); max-width: 200px; min-width: 80px; transition: box-shadow 0.15s, transform 0.15s; position: relative; }
+.q-card:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+.q-card.selected { outline: 2px solid #4a90d9; background: #e8f0fe; }
+.q-card .card-num { font-weight: 700; color: #999; font-size: 0.75rem; }
+.q-card.dragging { opacity: 0.5; }
+.grid-area { flex: 1; overflow-x: auto; overflow-y: auto; padding-bottom: 10px; }
+.sort-grid { display: flex; gap: 3px; justify-content: center; min-height: 200px; align-items: flex-start; padding: 8px; }
+.grid-column { display: flex; flex-direction: column; align-items: center; min-width: 90px; border-radius: 6px; padding: 6px 4px; transition: background 0.2s; }
+.grid-column.drag-over { outline: 2px dashed #4a90d9; }
+.grid-column.full { opacity: 0.6; }
+.col-header { font-weight: 700; font-size: 0.9rem; margin-bottom: 4px; }
+.col-count { font-size: 0.75rem; color: #666; margin-bottom: 6px; }
+.col-slots { display: flex; flex-direction: column; gap: 3px; width: 100%; align-items: center; }
+.col-slot { width: 100%; min-height: 36px; border: 1px dashed rgba(0,0,0,0.15); border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+.col-slot .q-card { margin: 0; max-width: none; width: 100%; }
+.progress-bar-container { background: #e0e0e0; border-radius: 10px; height: 20px; margin: 8px 0; overflow: hidden; position: relative; }
+.progress-bar-fill { height: 100%; background: #4a90d9; border-radius: 10px; transition: width 0.3s; }
+.progress-text { position: absolute; top: 0; left: 0; right: 0; text-align: center; line-height: 20px; font-size: 0.8rem; font-weight: 600; color: #333; }
+.touch-clone { position: fixed; z-index: 10000; pointer-events: none; opacity: 0.85; transform: scale(1.05); }
+.respondent-header { background: #fff; padding: 12px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 12px; border-radius: 8px; }
+.thank-you { text-align: center; padding: 60px 20px; }
+.thank-you h2 { font-size: 1.8rem; color: #5cb85c; margin-bottom: 16px; }
+
+/* Pre-Sort */
+.presort-container { max-width: 600px; margin: 0 auto; }
+.presort-counter { font-size: 0.85rem; color: #666; margin-bottom: 8px; text-align: center; }
+.presort-statement { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 16px; font-size: 1rem; text-align: center; min-height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.presort-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; }
+.presort-buttons button { flex: 1; padding: 12px 16px; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; color: #fff; transition: transform 0.1s, box-shadow 0.1s; }
+.presort-buttons button:active { transform: scale(0.97); }
+.presort-buttons .btn-disagree { background: #e74c3c; }
+.presort-buttons .btn-neutral { background: #f39c12; }
+.presort-buttons .btn-agree { background: #27ae60; }
+.presort-piles { display: flex; gap: 10px; margin-top: 16px; }
+.presort-pile { flex: 1; border-radius: 6px; padding: 10px; min-height: 80px; }
+.presort-pile h4 { font-size: 0.85rem; margin-bottom: 6px; text-align: center; }
+.presort-pile.pile-disagree { background: hsl(0,70%,95%); border: 1px solid hsl(0,50%,85%); }
+.presort-pile.pile-neutral { background: hsl(40,70%,95%); border: 1px solid hsl(40,50%,85%); }
+.presort-pile.pile-agree { background: hsl(130,50%,93%); border: 1px solid hsl(130,40%,80%); }
+.presort-pile .pile-card { font-size: 0.75rem; padding: 3px 6px; margin-bottom: 3px; border-radius: 3px; background: rgba(255,255,255,0.7); }
+.presort-done { text-align: center; padding: 20px; }
+.presort-done h3 { color: #5cb85c; margin-bottom: 12px; }
+.q-card.presort-disagree { border-left: 4px solid #e74c3c; }
+.q-card.presort-neutral { border-left: 4px solid #f39c12; }
+.q-card.presort-agree { border-left: 4px solid #27ae60; }
+.link-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+.link-row .link-id { font-weight: 700; color: #555; min-width: 50px; }
+.link-row .link-url { flex: 1; font-family: monospace; word-break: break-all; color: #333; }
+.link-row button { flex-shrink: 0; padding: 3px 10px; font-size: 0.8rem; }
+
+@media (max-width: 600px) {
+  .grid-column { min-width: 70px; }
+  .q-card { font-size: 0.75rem; padding: 4px 6px; max-width: 150px; }
+  .landing-btn { min-width: 160px; padding: 14px 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="site-logo"><img src="team_sailers_logo.png" alt="Team Sailers"></div>
+
+<!-- LANDING PAGE -->
+<div id="page-landing" class="container landing hidden">
+  <h1>Q Method Data Collector</h1>
+  <p>KenQ-compatible Q methodology data collection tool</p>
+  <div class="landing-buttons">
+    <button class="landing-btn btn-primary" onclick="goTo('admin')">Admin Setup</button>
+    <button class="landing-btn btn-success" onclick="goTo('respond')">Respondent Sort</button>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div id="page-admin" class="container hidden">
+  <h1>Q Method — Admin</h1>
+  <div class="tabs">
+    <div class="tab active" onclick="switchAdminTab('setup')">Study Setup</div>
+    <div class="tab" onclick="switchAdminTab('data')">Data Management</div>
+  </div>
+
+  <!-- SETUP TAB -->
+  <div id="admin-setup">
+    <div class="step-indicator" id="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <!-- Step 1: Project -->
+    <div id="step-1" class="card">
+      <h2>Step 1: Project Setup</h2>
+      <div style="margin-bottom:12px">
+        <label for="project-name">Project Name</label>
+        <input id="project-name" placeholder="My Q Study">
+      </div>
+      <div class="inline-group" style="margin-bottom:12px">
+        <div>
+          <label for="id-prefix">Participant ID Prefix</label>
+          <input id="id-prefix" placeholder="P" value="P">
+        </div>
+        <div>
+          <label for="participant-count">Number of Participants</label>
+          <input id="participant-count" type="number" min="1" value="10">
+        </div>
+      </div>
+      <div style="text-align:right;margin-top:16px">
+        <button class="btn-primary" onclick="adminNext(2)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Pattern -->
+    <div id="step-2" class="card hidden">
+      <h2>Step 2: Distribution Pattern</h2>
+      <div class="inline-group" style="margin-bottom:12px">
+        <div>
+          <label for="min-score">Min Score</label>
+          <input id="min-score" type="number" value="-4">
+        </div>
+        <div>
+          <label for="max-score">Max Score</label>
+          <input id="max-score" type="number" value="4">
+        </div>
+        <div style="flex:0">
+          <label>&nbsp;</label>
+          <button class="btn-primary" onclick="buildPattern()">Build</button>
+        </div>
+      </div>
+      <div id="pattern-designer"></div>
+      <div id="pattern-total" style="margin-top:8px;font-weight:600"></div>
+      <div id="pattern-warning" class="warning hidden"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(1)">Back</button>
+        <button class="btn-primary" onclick="adminNext(3)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Statements -->
+    <div id="step-3" class="card hidden">
+      <h2>Step 3: Statements</h2>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:8px">Enter one statement per line, or add individually below.</p>
+      <textarea id="stmt-bulk" rows="6" placeholder="Statement 1&#10;Statement 2&#10;Statement 3"></textarea>
+      <button class="btn-primary" style="margin-top:8px" onclick="loadBulkStatements()">Load Statements</button>
+      <div style="margin-top:12px">
+        <div class="inline-group">
+          <div><input id="stmt-single" placeholder="Add a statement"></div>
+          <div style="flex:0"><button class="btn-success" onclick="addSingleStatement()">Add</button></div>
+        </div>
+      </div>
+      <div id="stmt-count" style="margin:10px 0;font-weight:600"></div>
+      <div id="stmt-mismatch" class="warning hidden"></div>
+      <div class="stmt-list" id="stmt-list"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(2)">Back</button>
+        <button class="btn-primary" onclick="adminNext(4)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Demographic Questions -->
+    <div id="step-4" class="card hidden">
+      <h2>Step 4: Respondent Info Questions</h2>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:12px">Add demographic or personal info questions that respondents will answer before sorting. (e.g. Name, Age, Gender)</p>
+
+      <div style="background:#f9f9f9;padding:16px;border-radius:6px;margin-bottom:12px">
+        <div class="inline-group" style="margin-bottom:8px">
+          <div style="flex:3">
+            <label for="dq-text">Question Text</label>
+            <input id="dq-text" placeholder="e.g. What is your age?">
+          </div>
+          <div style="flex:1">
+            <label for="dq-type">Type</label>
+            <select id="dq-type" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px" onchange="toggleDqOptions()">
+              <option value="text">Text</option>
+              <option value="number">Number</option>
+              <option value="select">Dropdown</option>
+              <option value="radio">Radio Buttons</option>
+            </select>
+          </div>
+        </div>
+        <div id="dq-options-area" class="hidden" style="margin-bottom:8px">
+          <label for="dq-options">Options (one per line)</label>
+          <textarea id="dq-options" rows="3" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <label style="display:flex;align-items:center;gap:4px;margin:0;font-weight:normal;font-size:0.9rem">
+            <input type="checkbox" id="dq-required" checked> Required
+          </label>
+          <button class="btn-success" onclick="addDemoQuestion()">Add Question</button>
+        </div>
+      </div>
+
+      <div id="dq-count" style="font-weight:600;margin-bottom:8px"></div>
+      <div class="stmt-list" id="dq-list"></div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(3)">Back</button>
+        <button class="btn-primary" onclick="adminNext(5)">Next</button>
+      </div>
+    </div>
+
+    <!-- Step 5: Generate -->
+    <div id="step-5" class="card hidden">
+      <h2>Step 5: Generate & Share</h2>
+      <p>Review your configuration and generate the respondent link.</p>
+      <div id="config-summary" style="margin:12px 0;font-size:0.9rem"></div>
+      <button class="btn-success" onclick="saveAndGenerate()">Save Config & Generate Links</button>
+      <div id="generated-link" class="hidden" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <label style="margin:0">Respondent Links</label>
+          <button class="btn-primary" onclick="copyAllLinks()">Copy All Links</button>
+          <span id="copy-feedback" style="margin-left:8px;color:#5cb85c;font-size:0.9rem"></span>
+        </div>
+        <div id="respondent-links" style="max-height:300px;overflow-y:auto"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn-secondary" onclick="adminNext(4)">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA TAB -->
+  <div id="admin-data" class="hidden">
+    <div class="card">
+      <h2>Collected Responses</h2>
+      <div style="margin-bottom:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-success" onclick="exportXLSX()">Export Q-Sort (KenQ)</button>
+        <button class="btn-primary" onclick="exportDemographics()">Export Respondent Info</button>
+        <button class="btn-danger" onclick="clearAllResponses()">Clear All</button>
+      </div>
+      <div id="responses-table-wrap">
+        <p style="color:#999">Loading...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESPONDENT PAGE -->
+<div id="page-respond" class="hidden">
+  <!-- ID Input -->
+  <div id="respond-id-screen" class="container" style="max-width:500px;margin-top:40px">
+    <div class="card" style="text-align:center">
+      <h2 id="respond-project-title">Q Sort</h2>
+      <p style="color:#666;margin-bottom:16px">Please enter your participant ID to begin.</p>
+      <input id="participant-id" style="text-align:center;font-size:1.1rem" placeholder="Participant ID">
+      <button class="btn-primary" style="margin-top:16px;width:100%" onclick="startSort()">Begin Sorting</button>
+      <div id="respond-id-error" class="error hidden"></div>
+    </div>
+  </div>
+
+  <!-- Demographic Survey -->
+  <div id="respond-demo-screen" class="hidden">
+    <div class="container" style="max-width:600px;margin-top:20px">
+      <div class="card">
+        <h2>Respondent Information</h2>
+        <p style="color:#666;margin-bottom:16px">Please fill in the following information before starting the sort.</p>
+        <div id="demo-form"></div>
+        <div id="demo-error" class="error hidden" style="margin-top:8px"></div>
+        <button class="btn-primary" style="margin-top:16px;width:100%" onclick="submitDemoForm()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-Sort -->
+  <div id="respond-presort-screen" class="hidden">
+    <div class="container" style="max-width:700px">
+      <div class="card">
+        <h2>Pre-Sort: Initial Categorization</h2>
+        <p style="color:#666;margin-bottom:16px">Read each statement and categorize it as Agree, Neutral, or Disagree.</p>
+        <div class="presort-container">
+          <div id="presort-card-area">
+            <div class="presort-counter" id="presort-counter">Statement 1 of 0</div>
+            <div class="presort-statement" id="presort-statement"></div>
+            <div class="presort-buttons">
+              <button class="btn-disagree" onclick="presortChoice('disagree')">Disagree</button>
+              <button class="btn-neutral" onclick="presortChoice('neutral')">Neutral</button>
+              <button class="btn-agree" onclick="presortChoice('agree')">Agree</button>
+            </div>
+          </div>
+          <div id="presort-done" class="presort-done hidden">
+            <h3>Pre-sorting complete!</h3>
+            <p style="color:#666;margin-bottom:16px">Review your piles below, then proceed to the final sort. Cards will be color-coded by your categories.</p>
+            <button class="btn-success" onclick="goToFinalSort()">Proceed to Final Sort</button>
+            <button class="btn-secondary" style="margin-left:8px" onclick="redoPresort()">Redo Pre-sort</button>
+          </div>
+          <div class="presort-piles">
+            <div class="presort-pile pile-disagree">
+              <h4>Disagree (<span id="pile-d-count">0</span>)</h4>
+              <div id="pile-disagree"></div>
+            </div>
+            <div class="presort-pile pile-neutral">
+              <h4>Neutral (<span id="pile-n-count">0</span>)</h4>
+              <div id="pile-neutral"></div>
+            </div>
+            <div class="presort-pile pile-agree">
+              <h4>Agree (<span id="pile-a-count">0</span>)</h4>
+              <div id="pile-agree"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sort Interface -->
+  <div id="respond-sort-screen" class="hidden" style="padding:8px">
+    <div class="respondent-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h3 id="sort-project-title">Q Sort</h3>
+        <span id="sort-participant-label" style="font-size:0.9rem;color:#666"></span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        <div class="progress-text" id="progress-text">0 / 0 cards placed</div>
+      </div>
+    </div>
+    <div class="qsort-container">
+      <div class="pile-area">
+        <h3>Unsorted Cards <span id="pile-count"></span></h3>
+        <div class="pile-cards" id="pile-cards"></div>
+      </div>
+      <div class="grid-area">
+        <div class="sort-grid" id="sort-grid"></div>
+      </div>
+      <div style="text-align:center;padding:8px">
+        <button class="btn-success" id="submit-sort-btn" onclick="submitSort()" disabled>Submit Sort</button>
+        <div id="sort-error" class="error hidden" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Thank You -->
+  <div id="respond-thanks" class="container hidden">
+    <div class="card thank-you">
+      <h2>Thank You!</h2>
+      <p>Your Q sort has been recorded successfully.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============== STATE ==============
+let adminStep = 1;
+let statements = [];
+let demoQuestions = []; // { text, type, required, options? }
+let pattern = {};
+let patternMin = -4;
+let patternMax = 4;
+let config = null;
+let selectedCard = null;
+let touchState = null;
+let presortData = { disagree: [], neutral: [], agree: [] };
+let presortIdx = 0;
+let presortOrder = [];
+
+// ============== API HELPERS ==============
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || res.statusText);
+  }
+  return res.json();
+}
+
+// ============== ROUTING ==============
+function getMode() {
+  return new URLSearchParams(window.location.search).get('mode');
+}
+
+function goTo(mode) {
+  window.location.search = '?mode=' + mode;
+}
+
+async function initApp() {
+  const mode = getMode();
+  if (mode === 'admin') {
+    showPage('page-admin');
+    await loadAdminState();
+  } else if (mode === 'respond') {
+    showPage('page-respond');
+    await loadRespondentConfig();
+  } else {
+    showPage('page-landing');
+  }
+}
+
+function showPage(id) {
+  document.querySelectorAll('#page-landing,#page-admin,#page-respond').forEach(el => el.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ============== ADMIN ==============
+async function loadAdminState() {
+  try {
+    const cfg = await api('GET', '/api/config');
+    if (cfg) {
+      document.getElementById('project-name').value = cfg.projectName || '';
+      document.getElementById('id-prefix').value = cfg.prefix || 'P';
+      if (cfg.participantCount) document.getElementById('participant-count').value = cfg.participantCount;
+      if (cfg.pattern) {
+        pattern = cfg.pattern;
+        const scores = Object.keys(pattern).map(Number).sort((a,b)=>a-b);
+        if (scores.length) {
+          patternMin = scores[0];
+          patternMax = scores[scores.length - 1];
+          document.getElementById('min-score').value = patternMin;
+          document.getElementById('max-score').value = patternMax;
+        }
+      }
+      if (cfg.statements) statements = cfg.statements.slice();
+      if (cfg.demoQuestions) demoQuestions = cfg.demoQuestions.slice();
+    }
+  } catch(e) {}
+  buildPattern();
+  renderStatements();
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  if (tab === 'setup') {
+    document.querySelector('.tabs .tab:first-child').classList.add('active');
+    document.getElementById('admin-setup').classList.remove('hidden');
+    document.getElementById('admin-data').classList.add('hidden');
+  } else {
+    document.querySelector('.tabs .tab:last-child').classList.add('active');
+    document.getElementById('admin-setup').classList.add('hidden');
+    document.getElementById('admin-data').classList.remove('hidden');
+    renderResponses();
+  }
+}
+
+function adminNext(step) {
+  adminStep = step;
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('step-' + i).classList.toggle('hidden', i !== step);
+  }
+  const dots = document.querySelectorAll('.step-dot');
+  dots.forEach((d, idx) => {
+    d.classList.remove('active', 'done');
+    if (idx + 1 === step) d.classList.add('active');
+    else if (idx + 1 < step) d.classList.add('done');
+  });
+  if (step === 3) renderStatements();
+  if (step === 4) renderDemoQuestions();
+  if (step === 5) renderSummary();
+}
+
+// Pattern Designer
+function buildPattern() {
+  patternMin = parseInt(document.getElementById('min-score').value) || -4;
+  patternMax = parseInt(document.getElementById('max-score').value) || 4;
+  if (patternMin >= patternMax) { patternMax = patternMin + 1; document.getElementById('max-score').value = patternMax; }
+
+  const container = document.getElementById('pattern-designer');
+  const oldPattern = { ...pattern };
+  pattern = {};
+
+  let html = '<div class="pattern-grid">';
+  for (let s = patternMin; s <= patternMax; s++) {
+    const count = oldPattern[s] !== undefined ? oldPattern[s] : (s === patternMin || s === patternMax ? 2 : Math.max(2, 5 - Math.abs(s)));
+    pattern[s] = Math.max(1, count);
+    const color = scoreColor(s, patternMin, patternMax);
+    html += `<div class="pattern-col">
+      <div class="score-label">${s > 0 ? '+' : ''}${s}</div>`;
+    for (let i = 0; i < pattern[s]; i++) {
+      html += `<div class="pattern-cell" style="background:${color}"></div>`;
+    }
+    html += `<div class="count-display" id="pc-${s}">${pattern[s]}</div>
+      <div class="pattern-btns">
+        <button class="btn-secondary" onclick="adjustPattern(${s},-1)">-</button>
+        <button class="btn-secondary" onclick="adjustPattern(${s},1)">+</button>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updatePatternTotal();
+}
+
+function adjustPattern(score, delta) {
+  pattern[score] = Math.max(1, (pattern[score] || 1) + delta);
+  const container = document.getElementById('pattern-designer');
+  let html = '<div class="pattern-grid">';
+  for (let s = patternMin; s <= patternMax; s++) {
+    const color = scoreColor(s, patternMin, patternMax);
+    html += `<div class="pattern-col"><div class="score-label">${s > 0 ? '+' : ''}${s}</div>`;
+    for (let i = 0; i < pattern[s]; i++) {
+      html += `<div class="pattern-cell" style="background:${color}"></div>`;
+    }
+    html += `<div class="count-display">${pattern[s]}</div>
+      <div class="pattern-btns">
+        <button class="btn-secondary" onclick="adjustPattern(${s},-1)">-</button>
+        <button class="btn-secondary" onclick="adjustPattern(${s},1)">+</button>
+      </div></div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+  updatePatternTotal();
+}
+
+function patternTotal() {
+  return Object.values(pattern).reduce((a, b) => a + b, 0);
+}
+
+function updatePatternTotal() {
+  const total = patternTotal();
+  document.getElementById('pattern-total').textContent = `Total cards needed: ${total}`;
+  const warn = document.getElementById('pattern-warning');
+  if (statements.length && statements.length !== total) {
+    warn.textContent = `Warning: You have ${statements.length} statements but the pattern requires ${total} cards.`;
+    warn.classList.remove('hidden');
+  } else {
+    warn.classList.add('hidden');
+  }
+}
+
+// Statements
+function loadBulkStatements() {
+  const text = document.getElementById('stmt-bulk').value.trim();
+  if (!text) return;
+  statements = text.split('\n').map(l => l.trim()).filter(l => l);
+  document.getElementById('stmt-bulk').value = '';
+  renderStatements();
+}
+
+function addSingleStatement() {
+  const input = document.getElementById('stmt-single');
+  const text = input.value.trim();
+  if (!text) return;
+  statements.push(text);
+  input.value = '';
+  renderStatements();
+}
+
+function removeStatement(idx) {
+  statements.splice(idx, 1);
+  renderStatements();
+}
+
+function editStatement(idx) {
+  const newText = prompt('Edit statement:', statements[idx]);
+  if (newText !== null && newText.trim()) {
+    statements[idx] = newText.trim();
+    renderStatements();
+  }
+}
+
+function renderStatements() {
+  const list = document.getElementById('stmt-list');
+  if (!statements.length) {
+    list.innerHTML = '<div style="padding:12px;color:#999;text-align:center">No statements added yet.</div>';
+  } else {
+    list.innerHTML = statements.map((s, i) =>
+      `<div class="stmt-item">
+        <span class="num">${i + 1}.</span>
+        <span class="text">${escHtml(s)}</span>
+        <button class="btn-secondary" onclick="editStatement(${i})">Edit</button>
+        <button class="btn-danger" onclick="removeStatement(${i})">Del</button>
+      </div>`
+    ).join('');
+  }
+  const total = patternTotal();
+  document.getElementById('stmt-count').textContent = `${statements.length} statement(s)` + (total ? ` — pattern needs ${total}` : '');
+  const mm = document.getElementById('stmt-mismatch');
+  if (total && statements.length !== total) {
+    mm.textContent = `Mismatch: ${statements.length} statements vs ${total} required by pattern.`;
+    mm.classList.remove('hidden');
+  } else {
+    mm.classList.add('hidden');
+  }
+}
+
+// Demographic Questions
+function toggleDqOptions() {
+  const type = document.getElementById('dq-type').value;
+  document.getElementById('dq-options-area').classList.toggle('hidden', !['select','radio'].includes(type));
+}
+
+function addDemoQuestion() {
+  const text = document.getElementById('dq-text').value.trim();
+  const type = document.getElementById('dq-type').value;
+  const required = document.getElementById('dq-required').checked;
+  if (!text) return alert('Enter question text.');
+  const q = { text, type, required };
+  if (['select','radio'].includes(type)) {
+    const opts = document.getElementById('dq-options').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (!opts.length) return alert('Enter at least one option.');
+    q.options = opts;
+  }
+  demoQuestions.push(q);
+  document.getElementById('dq-text').value = '';
+  document.getElementById('dq-options').value = '';
+  renderDemoQuestions();
+}
+
+function removeDemoQuestion(idx) {
+  demoQuestions.splice(idx, 1);
+  renderDemoQuestions();
+}
+
+function renderDemoQuestions() {
+  const list = document.getElementById('dq-list');
+  document.getElementById('dq-count').textContent = demoQuestions.length + ' question(s)';
+  if (!demoQuestions.length) {
+    list.innerHTML = '<div style="padding:12px;color:#999;text-align:center">No questions added. (optional)</div>';
+    return;
+  }
+  const typeLabels = { text: 'Text', number: 'Number', select: 'Dropdown', radio: 'Radio' };
+  list.innerHTML = demoQuestions.map((q, i) =>
+    `<div class="stmt-item">
+      <span class="num">${i + 1}.</span>
+      <span class="text">${escHtml(q.text)} <span style="color:#999;font-size:0.8rem">[${typeLabels[q.type]}]</span>${q.required ? ' <span style="color:#d9534f">*</span>' : ''}${q.options ? ' <span style="color:#999;font-size:0.8rem">(' + q.options.length + ' options)</span>' : ''}</span>
+      <button class="btn-danger" onclick="removeDemoQuestion(${i})">Del</button>
+    </div>`
+  ).join('');
+}
+
+// Summary & Generate
+function renderSummary() {
+  const name = document.getElementById('project-name').value || '(untitled)';
+  const prefix = document.getElementById('id-prefix').value || 'P';
+  const count = parseInt(document.getElementById('participant-count').value) || 1;
+  const total = patternTotal();
+  const scores = Object.keys(pattern).map(Number).sort((a,b)=>a-b);
+  document.getElementById('config-summary').innerHTML =
+    `<p><strong>Project:</strong> ${escHtml(name)}</p>
+     <p><strong>Prefix:</strong> ${escHtml(prefix)}</p>
+     <p><strong>Participants:</strong> ${count}</p>
+     <p><strong>Scores:</strong> ${scores[0]} to ${scores[scores.length-1]}</p>
+     <p><strong>Pattern total:</strong> ${total} slots</p>
+     <p><strong>Statements:</strong> ${statements.length}</p>
+     <p><strong>Info questions:</strong> ${demoQuestions.length}</p>` +
+    (statements.length !== total ? `<div class="warning">Statement count does not match pattern!</div>` : '');
+}
+
+async function saveAndGenerate() {
+  const prefix = document.getElementById('id-prefix').value || 'P';
+  const count = parseInt(document.getElementById('participant-count').value) || 1;
+  const cfg = {
+    projectName: document.getElementById('project-name').value || 'Q Study',
+    prefix: prefix,
+    participantCount: count,
+    pattern: { ...pattern },
+    statements: statements.slice(),
+    demoQuestions: demoQuestions.slice()
+  };
+
+  try {
+    await api('POST', '/api/config', cfg);
+  } catch(e) {
+    alert('Failed to save config: ' + e.message);
+    return;
+  }
+
+  const base = window.location.origin + window.location.pathname;
+  const linksContainer = document.getElementById('respondent-links');
+  let html = '';
+  for (let i = 1; i <= count; i++) {
+    const pid = prefix + i;
+    const url = base + '?mode=respond&pid=' + encodeURIComponent(pid);
+    html += `<div class="link-row">
+      <span class="link-id">${escHtml(pid)}</span>
+      <span class="link-url">${escHtml(url)}</span>
+      <button class="btn-primary" onclick="copySingleLink(this, '${escHtml(url)}')">Copy</button>
+    </div>`;
+  }
+  linksContainer.innerHTML = html;
+  document.getElementById('generated-link').classList.remove('hidden');
+}
+
+function copySingleLink(btn, url) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+function copyAllLinks() {
+  const rows = document.querySelectorAll('.link-row');
+  const lines = Array.from(rows).map(r => {
+    const id = r.querySelector('.link-id').textContent;
+    const url = r.querySelector('.link-url').textContent;
+    return id + '\t' + url;
+  }).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    document.getElementById('copy-feedback').textContent = 'All links copied!';
+    setTimeout(() => document.getElementById('copy-feedback').textContent = '', 2000);
+  });
+}
+
+// ============== DATA MANAGEMENT ==============
+async function renderResponses() {
+  const wrap = document.getElementById('responses-table-wrap');
+  try {
+    const responses = await api('GET', '/api/responses');
+    if (!responses.length) {
+      wrap.innerHTML = '<p style="color:#999">No responses yet.</p>';
+      return;
+    }
+    let html = '<table><thead><tr><th>ID</th><th>Timestamp</th><th>Scores (preview)</th><th></th></tr></thead><tbody>';
+    responses.forEach((r, i) => {
+      const scores = r.scores ? r.scores.slice(0, 5).join(', ') + (r.scores.length > 5 ? '...' : '') : '';
+      html += `<tr>
+        <td>${escHtml(r.participantId)}</td>
+        <td>${r.timestamp || ''}</td>
+        <td>${scores}</td>
+        <td><button class="btn-danger" onclick="deleteResponse(${i})">Delete</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  } catch(e) {
+    wrap.innerHTML = '<p class="error">Failed to load responses: ' + escHtml(e.message) + '</p>';
+  }
+}
+
+async function deleteResponse(idx) {
+  if (!confirm('Delete this response?')) return;
+  try {
+    await api('DELETE', '/api/responses/' + idx);
+    renderResponses();
+  } catch(e) {
+    alert('Failed to delete: ' + e.message);
+  }
+}
+
+async function clearAllResponses() {
+  if (!confirm('Delete ALL responses? This cannot be undone.')) return;
+  try {
+    await api('DELETE', '/api/responses');
+    renderResponses();
+  } catch(e) {
+    alert('Failed to clear: ' + e.message);
+  }
+}
+
+// ============== KENQ EXPORT ==============
+function exportXLSX() {
+  window.location.href = '/api/export';
+}
+
+function exportDemographics() {
+  window.location.href = '/api/export-demographics';
+}
+
+// ============== RESPONDENT ==============
+async function loadRespondentConfig() {
+  try {
+    config = await api('GET', '/api/config');
+  } catch(e) {
+    config = null;
+  }
+
+  if (!config) {
+    document.getElementById('respond-id-screen').innerHTML = '<div class="card" style="text-align:center"><h2>No Study Found</h2><p>Please ask the study administrator to set up the study first.</p></div>';
+    return;
+  }
+
+  document.getElementById('respond-project-title').textContent = config.projectName || 'Q Sort';
+
+  // Check for pid in URL
+  const urlPid = new URLSearchParams(window.location.search).get('pid');
+  if (urlPid) {
+    document.getElementById('participant-id').value = urlPid;
+    document.getElementById('participant-id').readOnly = true;
+    document.getElementById('participant-id').style.background = '#f0f0f0';
+  } else {
+    // Fallback: pre-fill with next number
+    try {
+      const responses = await api('GET', '/api/responses');
+      const nextNum = responses.length + 1;
+      document.getElementById('participant-id').value = (config.prefix || 'P') + nextNum;
+    } catch(e) {
+      document.getElementById('participant-id').value = (config.prefix || 'P') + '1';
+    }
+  }
+}
+
+async function startSort() {
+  const pid = document.getElementById('participant-id').value.trim();
+  if (!pid) {
+    const err = document.getElementById('respond-id-error');
+    err.textContent = 'Please enter a participant ID.';
+    err.classList.remove('hidden');
+    return;
+  }
+
+  // Check duplicate via server
+  try {
+    const responses = await api('GET', '/api/responses');
+    if (responses.some(r => r.participantId === pid)) {
+      const err = document.getElementById('respond-id-error');
+      err.textContent = 'This participant ID has already been used. Please choose a different one.';
+      err.classList.remove('hidden');
+      return;
+    }
+  } catch(e) {}
+
+  document.getElementById('respond-id-screen').classList.add('hidden');
+
+  // If there are demographic questions, show demo form first
+  if (config.demoQuestions && config.demoQuestions.length) {
+    sortData.pid = pid;
+    showDemoForm();
+  } else {
+    document.getElementById('respond-presort-screen').classList.remove('hidden');
+    initPresort(pid);
+  }
+}
+
+// ============== DEMOGRAPHIC FORM ==============
+let demoAnswers = {};
+
+function showDemoForm() {
+  document.getElementById('respond-demo-screen').classList.remove('hidden');
+  const form = document.getElementById('demo-form');
+  form.innerHTML = config.demoQuestions.map((q, i) => {
+    const reqMark = q.required ? ' <span style="color:#d9534f">*</span>' : '';
+    let inputHtml = '';
+    if (q.type === 'text') {
+      inputHtml = `<input id="demo-q-${i}" style="width:100%">`;
+    } else if (q.type === 'number') {
+      inputHtml = `<input id="demo-q-${i}" type="number" style="width:100%">`;
+    } else if (q.type === 'select') {
+      inputHtml = `<select id="demo-q-${i}" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:4px">
+        <option value="">-- Select --</option>
+        ${q.options.map(o => `<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}
+      </select>`;
+    } else if (q.type === 'radio') {
+      inputHtml = `<div id="demo-q-${i}" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px">
+        ${q.options.map((o, oi) => `<label style="display:flex;align-items:center;gap:4px;font-weight:normal;font-size:0.9rem;cursor:pointer">
+          <input type="radio" name="demo-radio-${i}" value="${escHtml(o)}"> ${escHtml(o)}
+        </label>`).join('')}
+      </div>`;
+    }
+    return `<div style="margin-bottom:14px">
+      <label>${escHtml(q.text)}${reqMark}</label>
+      ${inputHtml}
+    </div>`;
+  }).join('');
+}
+
+function submitDemoForm() {
+  demoAnswers = {};
+  const errEl = document.getElementById('demo-error');
+  errEl.classList.add('hidden');
+
+  for (let i = 0; i < config.demoQuestions.length; i++) {
+    const q = config.demoQuestions[i];
+    let val = '';
+    if (q.type === 'radio') {
+      const checked = document.querySelector(`input[name="demo-radio-${i}"]:checked`);
+      val = checked ? checked.value : '';
+    } else {
+      const el = document.getElementById('demo-q-' + i);
+      val = el ? el.value.trim() : '';
+    }
+    if (q.required && !val) {
+      errEl.textContent = `Please answer: "${q.text}"`;
+      errEl.classList.remove('hidden');
+      return;
+    }
+    demoAnswers[q.text] = val;
+  }
+
+  document.getElementById('respond-demo-screen').classList.add('hidden');
+  document.getElementById('respond-presort-screen').classList.remove('hidden');
+  initPresort(sortData.pid);
+}
+
+// ============== PRE-SORT ==============
+function initPresort(pid) {
+  sortData.pid = pid;
+  presortData = { disagree: [], neutral: [], agree: [] };
+  presortIdx = 0;
+  // Shuffle statement indices
+  presortOrder = config.statements.map((_, i) => i);
+  for (let i = presortOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [presortOrder[i], presortOrder[j]] = [presortOrder[j], presortOrder[i]];
+  }
+  document.getElementById('presort-card-area').classList.remove('hidden');
+  document.getElementById('presort-done').classList.add('hidden');
+  renderPresortCard();
+  renderPresortPiles();
+}
+
+function renderPresortCard() {
+  if (presortIdx >= presortOrder.length) {
+    document.getElementById('presort-card-area').classList.add('hidden');
+    document.getElementById('presort-done').classList.remove('hidden');
+    return;
+  }
+  const stmtIdx = presortOrder[presortIdx];
+  document.getElementById('presort-counter').textContent = `Statement ${presortIdx + 1} of ${presortOrder.length}`;
+  document.getElementById('presort-statement').textContent = config.statements[stmtIdx];
+}
+
+function presortChoice(category) {
+  if (presortIdx >= presortOrder.length) return;
+  const stmtIdx = presortOrder[presortIdx];
+  presortData[category].push(stmtIdx);
+  presortIdx++;
+  renderPresortCard();
+  renderPresortPiles();
+}
+
+function renderPresortPiles() {
+  ['disagree', 'neutral', 'agree'].forEach(cat => {
+    const countId = cat === 'disagree' ? 'pile-d-count' : cat === 'neutral' ? 'pile-n-count' : 'pile-a-count';
+    document.getElementById(countId).textContent = presortData[cat].length;
+    const container = document.getElementById('pile-' + cat);
+    container.innerHTML = presortData[cat].map(idx =>
+      `<div class="pile-card"><strong>#${idx + 1}</strong> ${escHtml(config.statements[idx])}</div>`
+    ).join('');
+  });
+}
+
+function redoPresort() {
+  initPresort(sortData.pid);
+}
+
+function goToFinalSort() {
+  document.getElementById('respond-presort-screen').classList.add('hidden');
+  document.getElementById('respond-sort-screen').classList.remove('hidden');
+  initSortInterface(sortData.pid);
+}
+
+// ============== Q-SORT INTERFACE ==============
+let sortData = {
+  pid: '',
+  stmts: [],
+  pattern: {},
+  pile: [],
+  grid: {},
+  totalCards: 0
+};
+
+function initSortInterface(pid) {
+  sortData.pid = pid;
+  sortData.stmts = config.statements.slice();
+  sortData.pattern = { ...config.pattern };
+  sortData.totalCards = sortData.stmts.length;
+  // Order pile by presort: disagree → neutral → agree
+  sortData.pile = [...presortData.disagree, ...presortData.neutral, ...presortData.agree];
+  // Fallback if presort was empty
+  if (!sortData.pile.length) sortData.pile = sortData.stmts.map((_, i) => i);
+  sortData.grid = {};
+
+  const scores = Object.keys(sortData.pattern).map(Number).sort((a, b) => a - b);
+  scores.forEach(s => sortData.grid[s] = []);
+
+  document.getElementById('sort-project-title').textContent = config.projectName || 'Q Sort';
+  document.getElementById('sort-participant-label').textContent = 'Participant: ' + pid;
+
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+function getPresortClass(idx) {
+  if (presortData.disagree.includes(idx)) return 'presort-disagree';
+  if (presortData.agree.includes(idx)) return 'presort-agree';
+  if (presortData.neutral.includes(idx)) return 'presort-neutral';
+  return '';
+}
+
+function renderPile() {
+  const container = document.getElementById('pile-cards');
+  container.innerHTML = sortData.pile.map(idx =>
+    `<div class="q-card ${getPresortClass(idx)} ${selectedCard === idx ? 'selected' : ''}" data-idx="${idx}" draggable="true"
+      onclick="selectCard(${idx})" ondragstart="onDragStart(event,${idx})"
+      ontouchstart="onTouchStart(event,${idx})">
+      <span class="card-num">#${idx + 1}</span> ${escHtml(sortData.stmts[idx])}
+    </div>`
+  ).join('');
+  document.getElementById('pile-count').textContent = `(${sortData.pile.length} remaining)`;
+}
+
+function renderGrid() {
+  const container = document.getElementById('sort-grid');
+  const scores = Object.keys(sortData.pattern).map(Number).sort((a, b) => a - b);
+
+  container.innerHTML = scores.map(s => {
+    const max = sortData.pattern[s];
+    const cards = sortData.grid[s] || [];
+    const isFull = cards.length >= max;
+    const color = scoreColor(s, scores[0], scores[scores.length - 1]);
+
+    let slotsHtml = '';
+    for (let i = 0; i < max; i++) {
+      if (i < cards.length) {
+        const idx = cards[i];
+        slotsHtml += `<div class="col-slot">
+          <div class="q-card ${getPresortClass(idx)} ${selectedCard === idx ? 'selected' : ''}" data-idx="${idx}" draggable="true"
+            onclick="selectCard(${idx})" ondragstart="onDragStart(event,${idx})"
+            ontouchstart="onTouchStart(event,${idx})">
+            <span class="card-num">#${idx + 1}</span> ${escHtml(sortData.stmts[idx])}
+          </div>
+        </div>`;
+      } else {
+        slotsHtml += `<div class="col-slot"></div>`;
+      }
+    }
+
+    return `<div class="grid-column ${isFull ? 'full' : ''}" data-score="${s}" style="background:${color}"
+      ondragover="onDragOver(event)" ondrop="onDrop(event,${s})" onclick="placeInColumn(${s})">
+      <div class="col-header">${s > 0 ? '+' : ''}${s}</div>
+      <div class="col-count">${cards.length}/${max}</div>
+      <div class="col-slots">${slotsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateProgress() {
+  const placed = sortData.totalCards - sortData.pile.length;
+  const pct = sortData.totalCards ? (placed / sortData.totalCards * 100) : 0;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${placed} / ${sortData.totalCards} cards placed`;
+  document.getElementById('submit-sort-btn').disabled = sortData.pile.length > 0;
+}
+
+// Card selection (click-to-place fallback)
+function selectCard(idx) {
+  selectedCard = selectedCard === idx ? null : idx;
+  renderPile();
+  renderGrid();
+}
+
+function placeInColumn(score) {
+  if (selectedCard === null) return;
+  const max = sortData.pattern[score];
+  const cards = sortData.grid[score];
+  if (cards.length >= max) return;
+
+  removeCardFromAll(selectedCard);
+  cards.push(selectedCard);
+  selectedCard = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+function removeCardFromAll(idx) {
+  const pileIdx = sortData.pile.indexOf(idx);
+  if (pileIdx !== -1) sortData.pile.splice(pileIdx, 1);
+  for (const s in sortData.grid) {
+    const gi = sortData.grid[s].indexOf(idx);
+    if (gi !== -1) sortData.grid[s].splice(gi, 1);
+  }
+}
+
+function returnToPile(idx) {
+  removeCardFromAll(idx);
+  sortData.pile.push(idx);
+  sortData.pile.sort((a, b) => a - b);
+  selectedCard = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+// ============== DRAG & DROP (Desktop) ==============
+let dragIdx = null;
+
+function onDragStart(e, idx) {
+  dragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', idx);
+  e.target.classList.add('dragging');
+  selectedCard = null;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function onDrop(e, score) {
+  e.preventDefault();
+  if (dragIdx === null) return;
+  const max = sortData.pattern[score];
+  const cards = sortData.grid[score];
+  if (cards.length >= max) { dragIdx = null; return; }
+  removeCardFromAll(dragIdx);
+  cards.push(dragIdx);
+  dragIdx = null;
+  renderPile();
+  renderGrid();
+  updateProgress();
+}
+
+// Allow drop on pile area to return cards
+document.addEventListener('DOMContentLoaded', () => {
+  const pile = document.querySelector('.pile-area');
+  if (pile) {
+    pile.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    pile.addEventListener('drop', e => {
+      e.preventDefault();
+      if (dragIdx !== null) { returnToPile(dragIdx); dragIdx = null; }
+    });
+  }
+});
+
+// ============== TOUCH DRAG (Mobile) ==============
+function onTouchStart(e, idx) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  const card = e.target.closest('.q-card');
+  if (!card) return;
+
+  const clone = card.cloneNode(true);
+  clone.classList.add('touch-clone');
+  clone.style.width = card.offsetWidth + 'px';
+  clone.style.left = (touch.clientX - card.offsetWidth / 2) + 'px';
+  clone.style.top = (touch.clientY - 20) + 'px';
+  document.body.appendChild(clone);
+
+  touchState = { idx, clone };
+
+  card.addEventListener('touchmove', onTouchMove, { passive: false });
+  card.addEventListener('touchend', onTouchEnd);
+  card.addEventListener('touchcancel', onTouchCancel);
+}
+
+function onTouchMove(e) {
+  if (!touchState) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchState.clone.style.left = (touch.clientX - touchState.clone.offsetWidth / 2) + 'px';
+  touchState.clone.style.top = (touch.clientY - 20) + 'px';
+
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  const el = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (el) {
+    const col = el.closest('.grid-column');
+    if (col) col.classList.add('drag-over');
+  }
+}
+
+function onTouchEnd(e) {
+  if (!touchState) return;
+  const touch = e.changedTouches[0];
+  touchState.clone.remove();
+
+  const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (elUnder) {
+    const pileArea = elUnder.closest('.pile-area');
+    if (pileArea) {
+      returnToPile(touchState.idx);
+      cleanupTouch(e);
+      return;
+    }
+    const col = elUnder.closest('.grid-column');
+    if (col) {
+      const score = parseInt(col.dataset.score);
+      const max = sortData.pattern[score];
+      const cards = sortData.grid[score];
+      if (cards.length < max) {
+        removeCardFromAll(touchState.idx);
+        cards.push(touchState.idx);
+        renderPile();
+        renderGrid();
+        updateProgress();
+      }
+    }
+  }
+
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  cleanupTouch(e);
+}
+
+function onTouchCancel(e) {
+  if (touchState) touchState.clone.remove();
+  document.querySelectorAll('.grid-column').forEach(c => c.classList.remove('drag-over'));
+  cleanupTouch(e);
+}
+
+function cleanupTouch(e) {
+  const card = e.target.closest('.q-card');
+  if (card) {
+    card.removeEventListener('touchmove', onTouchMove);
+    card.removeEventListener('touchend', onTouchEnd);
+    card.removeEventListener('touchcancel', onTouchCancel);
+  }
+  touchState = null;
+}
+
+// ============== SUBMIT SORT ==============
+async function submitSort() {
+  if (sortData.pile.length > 0) {
+    const err = document.getElementById('sort-error');
+    err.textContent = `Please place all cards before submitting. ${sortData.pile.length} card(s) remaining.`;
+    err.classList.remove('hidden');
+    return;
+  }
+
+  // Build scores array: index i = score assigned to statement i
+  const scores = new Array(sortData.totalCards);
+  for (const s in sortData.grid) {
+    sortData.grid[s].forEach(idx => {
+      scores[idx] = parseInt(s);
+    });
+  }
+
+  const response = {
+    participantId: sortData.pid,
+    timestamp: new Date().toISOString(),
+    scores: scores,
+    demographics: demoAnswers
+  };
+
+  try {
+    await api('POST', '/api/responses', response);
+    document.getElementById('respond-sort-screen').classList.add('hidden');
+    document.getElementById('respond-thanks').classList.remove('hidden');
+  } catch(e) {
+    const err = document.getElementById('sort-error');
+    err.textContent = 'Failed to submit: ' + e.message;
+    err.classList.remove('hidden');
+  }
+}
+
+// ============== UTILITIES ==============
+function scoreColor(score, min, max) {
+  const range = max - min || 1;
+  const ratio = (score - min) / range;
+  let h, s, l;
+  if (ratio <= 0.5) {
+    h = ratio * 2 * 50;
+    s = 70; l = 90;
+  } else {
+    h = 50 + (ratio - 0.5) * 2 * 80;
+    s = 70; l = 87;
+  }
+  return `hsl(${h},${s}%,${l}%)`;
+}
+
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ============== INIT ==============
+initApp();
+</script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+{
+  "admins": [
+    {
+      "username": "daryk1002",
+      "passwordHash": "29652e8679120c05a47e274d0ed60a56b02400c0e54d569cebd16726a8d99f01",
+      "createdAt": "2026-03-09T03:47:21.098Z"
+    }
+  ],
+  "studies": [
+    {
+      "id": "bf714d21beb5",
+      "config": {
+        "projectName": "Q Study",
+        "prefix": "P",
+        "participantCount": 10,
+        "pattern": {
+          "0": 4,
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "4": 2,
+          "-2": 2,
+          "-1": 3
+        },
+        "statements": [
+          "1.나는나",
+          "2.너는너",
+          "3.우리",
+          "4.걔네",
+          "5.우와",
+          "6.엄청",
+          "7.나다",
+          "8.이제",
+          "9.할말",
+          "10.없음",
+          "11.",
+          "12.",
+          "13.",
+          "14.",
+          "15.",
+          "16."
+        ],
+        "demoQuestions": [
+          {
+            "text": "이름?",
+            "type": "text",
+            "required": true
+          },
+          {
+            "text": "연령?",
+            "type": "number",
+            "required": true
+          },
+          {
+            "text": "성별?",
+            "type": "select",
+            "required": true,
+            "options": [
+              "남",
+              "여"
+            ]
+          }
+        ]
+      },
+      "responses": [
+        {
+          "participantId": "P1",
+          "timestamp": "2026-03-07T09:31:18.846Z",
+          "scores": [
+            -3,
+            -2,
+            -1,
+            -1,
+            0,
+            0,
+            -2,
+            0,
+            -1,
+            0,
+            1,
+            1,
+            1,
+            2,
+            2,
+            3
+          ]
+        },
+        {
+          "participantId": "P2",
+          "timestamp": "2026-03-07T09:40:42.888Z",
+          "scores": [
+            -2,
+            -2,
+            -3,
+            0,
+            -1,
+            0,
+            -1,
+            0,
+            2,
+            -1,
+            1,
+            3,
+            2,
+            0,
+            1,
+            1
+          ],
+          "demographics": {
+            "이름?": "동동",
+            "연령?": "32",
+            "성별?": "남"
+          }
+        }
+      ]
+    },
+    {
+      "id": "954bfdeefc8d",
+      "owner": "daryk1002",
+      "config": {
+        "projectName": "Q Study",
+        "prefix": "P",
+        "participantCount": 14,
+        "pattern": {
+          "0": 4,
+          "1": 3,
+          "2": 2,
+          "3": 1,
+          "-3": 1,
+          "-2": 2,
+          "-1": 3
+        },
+        "statements": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16"
+        ],
+        "demoQuestions": [
+          {
+            "text": "연령",
+            "type": "number",
+            "required": true
+          }
+        ]
+      },
+      "responses": [],
+      "createdAt": "2026-03-09T03:47:28.078Z"
+    },
+    {
+      "id": "ced90afaf433",
+      "owner": "daryk1002",
+      "config": {
+        "projectName": "My Q2",
+        "prefix": "P",
+        "participantCount": 10,
+        "pattern": {
+          "0": 3,
+          "1": 2,
+          "2": 1,
+          "-2": 1,
+          "-1": 2
+        },
+        "statements": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9"
+        ],
+        "demoQuestions": [
+          {
+            "text": "이름",
+            "type": "text",
+            "required": true
+          }
+        ]
+      },
+      "responses": [],
+      "createdAt": "2026-03-09T03:49:32.458Z"
+    },
+    {
+      "id": "1fea45b81961",
+      "owner": "daryk1002",
+      "config": null,
+      "responses": [],
+      "createdAt": "2026-03-09T04:15:38.616Z"
+    }
+  ]
+}
